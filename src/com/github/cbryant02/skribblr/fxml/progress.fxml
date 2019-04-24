@@ -3,26 +3,21 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="100.0" maxWidth="300.0" minHeight="100.0" minWidth="300.0" prefHeight="100.0"
-            prefWidth="300.0" xmlns="http://javafx.com/javafx/8.0.172-ea" fx:id="root"
-            fx:controller="com.github.cbryant02.skribblr.ProgressController">
+
+<AnchorPane fx:id="root" maxHeight="100.0" maxWidth="300.0" minHeight="100.0" minWidth="300.0" prefHeight="100.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.cbryant02.skribblr.ProgressController">
     <children>
-        <ProgressBar fx:id="progressBar" layoutX="50.0" layoutY="44.0" prefWidth="200.0" progress="0.0"
-                     AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+        <ProgressBar fx:id="progressBar" layoutX="50.0" layoutY="44.0" prefWidth="200.0" progress="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
             <padding>
-                <Insets left="30.0" right="30.0"/>
+                <Insets left="30.0" right="30.0" />
             </padding>
         </ProgressBar>
-        <Label alignment="CENTER" layoutX="111.0" layoutY="14.0" text="Drawing..." textAlignment="CENTER"
-               AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="14.0">
+        <Label alignment="CENTER" layoutX="111.0" layoutY="14.0" text="Drawing..." textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="14.0">
             <font>
-                <Font size="18.0"/>
+                <Font size="18.0" />
             </font>
         </Label>
-        <Label fx:id="progressLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="147.0" layoutY="62.0"
-               text="0/0" textAlignment="CENTER" AnchorPane.bottomAnchor="21.0" AnchorPane.leftAnchor="0.0"
-               AnchorPane.rightAnchor="0.0"/>
+        <Label fx:id="progressLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="147.0" layoutY="62.0" text="0/0" textAlignment="CENTER" AnchorPane.bottomAnchor="21.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
     </children>
 </AnchorPane>

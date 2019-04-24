@@ -11,7 +11,7 @@ import java.io.IOException;
 
 public class Main extends Application {
     private BufferedImage currentImageOrig;
-    private BufferedImage currentImageSkribbl;
+    private BufferedImage currentImageConverted;
 
     public static void main(String[] args) {
         launch(args);

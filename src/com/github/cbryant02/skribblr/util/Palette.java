@@ -1,4 +1,4 @@
-package com.github.cbryant02.skribblr;
+package com.github.cbryant02.skribblr.util;
 
 import java.awt.Color;
 
