@@ -6,22 +6,29 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 public class Main extends Application {
-
-    @Override
-    public void start(Stage primaryStage) throws IOException {
-        Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
-        primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new Scene(root, 300, 275));
-        primaryStage.show();
-
-        new ProgressPopup(5000);
-    }
-
+    private BufferedImage currentImageOrig;
+    private BufferedImage currentImageSkribbl;
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    @Override
+    public void start(Stage stage) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("fxml/main.fxml"));
+        loader.setController(new MainController(stage));
+        loader.load();
+
+        Parent root = loader.getRoot();
+        stage.setTitle("Skribblr");
+        stage.setScene(new Scene(root, root.prefWidth(-1), root.prefHeight(-1)));
+        stage.setResizable(false);
+        stage.show();
+
+        ProgressPopup p = new ProgressPopup(640*480);
     }
 }

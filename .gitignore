@@ -1,4 +1,8 @@
 *.iml
 *.xml
 *.html
+*.bmp
+*.png
+*.jpg
+*.gif
 out/**
