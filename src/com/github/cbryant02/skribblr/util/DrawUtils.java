@@ -1,7 +1,12 @@
 package com.github.cbryant02.skribblr.util;
 
 import com.jwetherell.algorithms.datastructures.KdTree;
-import java.awt.Color;
+import javafx.concurrent.Task;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 
@@ -12,29 +17,87 @@ public class DrawUtils {
         tree = new KdTree<>();
 
         // Populate tree with palette values
-        for(Palette palette : Palette.values())
-            tree.add(new ColorPoint(palette.getColor()));
+        for(Skribbl.Color color : Skribbl.Color.values())
+            tree.add(new ColorPoint(color.getColor()));
     }
 
-    public static Thread draw(BufferedImage image) {
-        return null;
+    /**
+     * Draw an image.
+     * @param image Image to draw
+     * @return Drawing task, for tracking progress only. No result.
+     */
+    public static Task<Void> draw(final BufferedImage image) {
+        return new Task<Void>() {
+            @Override
+            protected Void call() {
+                for(int y = 0; y < image.getHeight(); y++) {
+                    for(int x = 0; x < image.getWidth(); x++) {
+
+                    }
+                }
+                return null;
+            }
+        };
     }
 
-    public static BufferedImage skribblify(BufferedImage original) {
-        BufferedImage clone = new BufferedImage(original.getWidth(), original.getHeight(), original.getType());
-        original.copyData(clone.getRaster());
+    /**
+     * Converts the colors in an image to the closest color in the Skribbl palette.
+     * <br/>
+     * Returns a JavaFX image instead of an AWT image.
+     * @param image Original image
+     * @return Converted image
+     */
+    public static Image skribblify(final Image image) {
+        return SwingFXUtils.toFXImage(skribblify(SwingFXUtils.fromFXImage(image, null)), null);
+    }
+
+    /**
+     * Converts the colors in an image to the closest color in the Skribbl palette.
+     * @param image Original image
+     * @return Converted image
+     */
+    private static BufferedImage skribblify(final BufferedImage image) {
+        BufferedImage clone = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
         WritableRaster pixels = clone.getRaster();
 
-        for(int x = 0; x < original.getWidth(); x++) {
-            for(int y = 0; y < original.getWidth(); y++) {
-                Color rgb = new Color(original.getRGB(x, y));
-                ColorPoint nearest = ((ColorPoint)tree.nearestNeighbourSearch(1, new ColorPoint(rgb)).toArray()[0]);
+        for(int y = 0; y < image.getHeight(); y++) {
+            for(int x = 0; x < image.getWidth(); x++) {
+                java.awt.Color rgb = new java.awt.Color(image.getRGB(x, y), true);
+                ColorPoint nearest = ((ColorPoint) tree.nearestNeighbourSearch(1, new ColorPoint(rgb)).toArray()[0]);
 
-                pixels.setPixel(x, y, new int[]{nearest.getR(), nearest.getG(), nearest.getB()});
+                pixels.setPixel(x, y, new int[]{nearest.getR(), nearest.getG(), nearest.getB(), rgb.getAlpha()});
             }
         }
 
         return clone;
+    }
+
+    /**
+     * Scale an image.
+     * <br/>
+     * Returns a JavaFX image instead of an AWT image.
+     * @param image Image to scale
+     * @param factor Scale factor
+     * @return Scaled image
+     */
+    public static Image scaleImage(final Image image, double factor) {
+        return SwingFXUtils.toFXImage(scaleImage(SwingFXUtils.fromFXImage(image, null), factor), null);
+    }
+
+    /**
+     * Scale an image.
+     * @param image Image to scale
+     * @param factor Scale factor
+     * @return Scaled image
+     */
+    private static BufferedImage scaleImage(final BufferedImage image, double factor) {
+        BufferedImage clone = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+
+        AffineTransform transform = new AffineTransform();
+        transform.scale(factor, factor);
+        AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+
+        return op.filter(image, clone);
     }
 
     /**
@@ -46,9 +109,9 @@ public class DrawUtils {
         int[] rgb = new int[3];
 
         // Mask bits
-        rgb[0] = (bits & 0xFF0000);
-        rgb[1] = (bits & 0x00FF00);
-        rgb[2] = (bits & 0x0000FF);
+        rgb[0] = ((bits & 0xFF0000) >> 16);
+        rgb[1] = ((bits & 0x00FF00) >> 8);
+        rgb[2] =  (bits & 0x0000FF);
 
         return rgb;
     }

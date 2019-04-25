@@ -1,19 +1,6 @@
 package com.jwetherell.algorithms.datastructures;
 
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
-
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * A k-d tree (short for k-dimensional tree) is a space-partitioning data
@@ -25,6 +12,7 @@ import java.util.TreeSet;
  * @see <a href="https://en.wikipedia.org/wiki/K-d_tree">K-D Tree (Wikipedia)</a>
  * <br>
  * @author Justin Wetherell <phishman3579@gmail.com>
+ * @implNote
  */
 public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
 
@@ -37,11 +25,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
          */
         @Override
         public int compare(XYZPoint o1, XYZPoint o2) {
-            if (o1.x < o2.x)
-                return -1;
-            if (o1.x > o2.x)
-                return 1;
-            return 0;
+            return Double.compare(o1.x, o2.x);
         }
     };
 
@@ -51,11 +35,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
          */
         @Override
         public int compare(XYZPoint o1, XYZPoint o2) {
-            if (o1.y < o2.y)
-                return -1;
-            if (o1.y > o2.y)
-                return 1;
-            return 0;
+            return Double.compare(o1.y, o2.y);
         }
     };
 
@@ -65,17 +45,13 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
          */
         @Override
         public int compare(XYZPoint o1, XYZPoint o2) {
-            if (o1.z < o2.z)
-                return -1;
-            if (o1.z > o2.z)
-                return 1;
-            return 0;
+            return Double.compare(o1.z, o2.z);
         }
     };
 
-    protected static final int X_AXIS = 0;
-    protected static final int Y_AXIS = 1;
-    protected static final int Z_AXIS = 2;
+    private static final int X_AXIS = 0;
+    private static final int Y_AXIS = 1;
+    private static final int Z_AXIS = 2;
 
     /**
      * Default constructor.
@@ -125,15 +101,15 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
 
         int axis = depth % k;
         if (axis == X_AXIS)
-            Collections.sort(list, X_COMPARATOR);
+            list.sort(X_COMPARATOR);
         else if (axis == Y_AXIS)
-            Collections.sort(list, Y_COMPARATOR);
+            list.sort(Y_COMPARATOR);
         else
-            Collections.sort(list, Z_COMPARATOR);
+            list.sort(Z_COMPARATOR);
 
         KdNode node = null;
-        List<XYZPoint> less = new ArrayList<XYZPoint>(list.size());
-        List<XYZPoint> more = new ArrayList<XYZPoint>(list.size());
+        List<XYZPoint> less = new ArrayList<>(list.size());
+        List<XYZPoint> more = new ArrayList<>(list.size());
         if (list.size() > 0) {
             int medianIndex = list.size() / 2;
             node = new KdNode(list.get(medianIndex), k, depth);
@@ -230,7 +206,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
      *            to search for.
      * @return KdNode or NULL if not found
      */
-    private static final <T extends KdTree.XYZPoint> KdNode getNode(KdTree<T> tree, T value) {
+    private static <T extends KdTree.XYZPoint> KdNode getNode(KdTree<T> tree, T value) {
         if (tree == null || tree.root == null || value == null)
             return null;
 
@@ -271,7 +247,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
 
         KdNode parent = node.parent;
         if (parent != null) {
-            if (parent.lesser != null && node.equals(parent.lesser)) {
+            if (node.equals(parent.lesser)) {
                 List<XYZPoint> nodes = getTree(node);
                 if (nodes.size() > 0) {
                     parent.lesser = createNode(nodes, node.k, node.depth);
@@ -311,8 +287,8 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
      *            of tree to get nodes for.
      * @return points in (sub) tree, not including root.
      */
-    private static final List<XYZPoint> getTree(KdNode root) {
-        List<XYZPoint> list = new ArrayList<XYZPoint>();
+    private static List<XYZPoint> getTree(KdNode root) {
+        List<XYZPoint> list = new ArrayList<>();
         if (root == null)
             return list;
 
@@ -344,7 +320,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
             return Collections.EMPTY_LIST;
 
         // Map used for results
-        TreeSet<KdNode> results = new TreeSet<KdNode>(new EuclideanComparator(value));
+        TreeSet<KdNode> results = new TreeSet<>(new EuclideanComparator(value));
 
         // Find the closest leaf node
         KdNode prev = null;
@@ -362,32 +338,30 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
         }
         KdNode leaf = prev;
 
-        if (leaf != null) {
-            // Used to not re-examine nodes
-            Set<KdNode> examined = new HashSet<KdNode>();
+        // Used to not re-examine nodes
+        Set<KdNode> examined = new HashSet<>();
 
-            // Go up the tree, looking for better solutions
-            node = leaf;
-            while (node != null) {
-                // Search node
-                searchNode(value, node, K, results, examined);
-                node = node.parent;
-            }
+        // Go up the tree, looking for better solutions
+        node = leaf;
+        while (node != null) {
+            // Search node
+            searchNode(value, node, K, results, examined);
+            node = node.parent;
         }
 
         // Load up the collection of the results
-        Collection<T> collection = new ArrayList<T>(K);
+        Collection<T> collection = new ArrayList<>(K);
         for (KdNode kdNode : results)
             collection.add((T) kdNode.id);
         return collection;
     }
 
-    private static final <T extends KdTree.XYZPoint> void searchNode(T value, KdNode node, int K, TreeSet<KdNode> results, Set<KdNode> examined) {
+    private static <T extends KdTree.XYZPoint> void searchNode(T value, KdNode node, int K, TreeSet<KdNode> results, Set<KdNode> examined) {
         examined.add(node);
 
         // Search node
         KdNode lastNode = null;
-        Double lastDistance = Double.MAX_VALUE;
+        double lastDistance = Double.MAX_VALUE;
         if (results.size() > 0) {
             lastNode = results.last();
             lastDistance = lastNode.id.euclideanDistance(value);
@@ -414,8 +388,8 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
         if (lesser != null && !examined.contains(lesser)) {
             examined.add(lesser);
 
-            double nodePoint = Double.MIN_VALUE;
-            double valuePlusDistance = Double.MIN_VALUE;
+            double nodePoint;
+            double valuePlusDistance;
             if (axis == X_AXIS) {
                 nodePoint = node.id.x;
                 valuePlusDistance = value.x - lastDistance;
@@ -426,7 +400,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
                 nodePoint = node.id.z;
                 valuePlusDistance = value.z - lastDistance;
             }
-            boolean lineIntersectsCube = ((valuePlusDistance <= nodePoint) ? true : false);
+            boolean lineIntersectsCube = (valuePlusDistance <= nodePoint);
 
             // Continue down lesser branch
             if (lineIntersectsCube)
@@ -435,8 +409,8 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
         if (greater != null && !examined.contains(greater)) {
             examined.add(greater);
 
-            double nodePoint = Double.MIN_VALUE;
-            double valuePlusDistance = Double.MIN_VALUE;
+            double nodePoint;
+            double valuePlusDistance;
             if (axis == X_AXIS) {
                 nodePoint = node.id.x;
                 valuePlusDistance = value.x + lastDistance;
@@ -447,7 +421,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
                 nodePoint = node.id.z;
                 valuePlusDistance = value.z + lastDistance;
             }
-            boolean lineIntersectsCube = ((valuePlusDistance >= nodePoint) ? true : false);
+            boolean lineIntersectsCube = (valuePlusDistance >= nodePoint);
 
             // Continue down greater branch
             if (lineIntersectsCube)
@@ -485,7 +459,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
 
         private final XYZPoint point;
 
-        public EuclideanComparator(XYZPoint point) {
+        EuclideanComparator(XYZPoint point) {
             this.point = point;
         }
 
@@ -511,7 +485,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
      *                  allowing to iterate through a collection containing all found entries.
      */
     public Iterator<T> iterator() {
-        final Deque<T> results = new ArrayDeque<T>();
+        final Deque<T> results = new ArrayDeque<>();
         search(root, results);
         return results.iterator();
     }
@@ -523,7 +497,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
      *                  allowing to iterate through a collection containing all found entries.
      */
     public Iterator<T> reverse_iterator() {
-        final Deque<T> results = new ArrayDeque<T>();
+        final Deque<T> results = new ArrayDeque<>();
         search(root, results);
         return results.descendingIterator();
     }
@@ -538,19 +512,19 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
         private KdNode lesser = null;
         private KdNode greater = null;
 
-        public KdNode(XYZPoint id) {
+        KdNode(XYZPoint id) {
             this.id = id;
             this.k = 3;
             this.depth = 0;
         }
 
-        public KdNode(XYZPoint id, int k, int depth) {
+        KdNode(XYZPoint id, int k, int depth) {
             this.id = id;
             this.k = k;
             this.depth = depth;
         }
 
-        public static int compareTo(int depth, int k, XYZPoint o1, XYZPoint o2) {
+        static int compareTo(int depth, int k, XYZPoint o1, XYZPoint o2) {
             int axis = depth % k;
             if (axis == X_AXIS)
                 return X_COMPARATOR.compare(o1, o2);
@@ -578,9 +552,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
                 return false;
 
             KdNode kdNode = (KdNode) obj;
-            if (this.compareTo(kdNode) == 0)
-                return true;
-            return false;
+            return this.compareTo(kdNode) == 0;
         }
 
         /**
@@ -596,25 +568,24 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
          */
         @Override
         public String toString() {
-            StringBuilder builder = new StringBuilder();
-            builder.append("k=").append(k);
-            builder.append(" depth=").append(depth);
-            builder.append(" id=").append(id.toString());
-            return builder.toString();
+            String string = "k=" + k +
+                    " depth=" + depth +
+                    " id=" + id.toString();
+            return string;
         }
     }
 
     public static class XYZPoint implements Comparable<XYZPoint> {
 
-        protected final double x;
-        protected final double y;
-        protected final double z;
+        final double x;
+        final double y;
+        final double z;
 
         /**
          * z is defaulted to zero.
          *
-         * @param x
-         * @param y
+         * @param x X coordinate
+         * @param y Y coordinate
          */
         public XYZPoint(double x, double y) {
             this.x = x;
@@ -625,9 +596,9 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
         /**
          * Default constructor
          *
-         * @param x
-         * @param y
-         * @param z
+         * @param x X coordinate
+         * @param y Y coordinate
+         * @param z Z coordinate
          */
         public XYZPoint(double x, double y, double z) {
             this.x = x;
@@ -635,24 +606,13 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
             this.z = z;
         }
 
-        /**
-         * Does not use R to calculate x, y, and z. Where R is the approximate radius of earth (e.g. 6371KM).
-         * @param latitude
-         * @param longitude
-         */
-        public XYZPoint(Double latitude, Double longitude) {
-            x = cos(Math.toRadians(latitude)) * cos(Math.toRadians(longitude));
-            y = cos(Math.toRadians(latitude)) * sin(Math.toRadians(longitude));
-            z = sin(Math.toRadians(latitude));
-        }
-
-        public double getX() {
+        protected double getX() {
             return x;
         }
-        public double getY() {
+        protected double getY() {
             return y;
         }
-        public double getZ() {
+        protected double getZ() {
             return z;
         }
 
@@ -663,7 +623,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
          *            other point.
          * @return euclidean distance.
          */
-        public double euclideanDistance(XYZPoint o1) {
+        double euclideanDistance(XYZPoint o1) {
             return euclideanDistance(o1, this);
         }
 
@@ -676,7 +636,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
          *            second point.
          * @return euclidean distance.
          */
-        private static final double euclideanDistance(XYZPoint o1, XYZPoint o2) {
+        private static double euclideanDistance(XYZPoint o1, XYZPoint o2) {
             return Math.sqrt(Math.pow((o1.x - o2.x), 2) + Math.pow((o1.y - o2.y), 2) + Math.pow((o1.z - o2.z), 2));
         }
 
@@ -703,9 +663,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
                 return false;
             if (Double.compare(this.y, xyzPoint.y)!=0)
                 return false;
-            if (Double.compare(this.z, xyzPoint.z)!=0)
-                return false;
-            return true;
+            return Double.compare(this.z, xyzPoint.z) == 0;
         }
 
         /**
@@ -719,8 +677,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
             int yComp = Y_COMPARATOR.compare(this, o);
             if (yComp != 0)
                 return yComp;
-            int zComp = Z_COMPARATOR.compare(this, o);
-            return zComp;
+            return Z_COMPARATOR.compare(this, o);
         }
 
         /**
@@ -728,19 +685,18 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
          */
         @Override
         public String toString() {
-            StringBuilder builder = new StringBuilder();
-            builder.append("(");
-            builder.append(x).append(", ");
-            builder.append(y).append(", ");
-            builder.append(z);
-            builder.append(")");
-            return builder.toString();
+            String string = "(" +
+                    x + ", " +
+                    y + ", " +
+                    z +
+                    ")";
+            return string;
         }
     }
 
     protected static class TreePrinter {
 
-        public static <T extends XYZPoint> String getString(KdTree<T> tree) {
+        static <T extends XYZPoint> String getString(KdTree<T> tree) {
             if (tree.root == null)
                 return "Tree has no nodes.";
             return getString(tree.root, "", true);
@@ -753,14 +709,13 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
                 String side = "left";
                 if (node.parent.greater != null && node.id.equals(node.parent.greater.id))
                     side = "right";
-                builder.append(prefix + (isTail ? "└── " : "├── ") + "[" + side + "] " + "depth=" + node.depth + " id="
-                        + node.id + "\n");
+                builder.append(prefix).append(isTail ? "└── " : "├── ").append("[").append(side).append("] ").append("depth=").append(node.depth).append(" id=").append(node.id).append("\n");
             } else {
-                builder.append(prefix + (isTail ? "└── " : "├── ") + "depth=" + node.depth + " id=" + node.id + "\n");
+                builder.append(prefix).append(isTail ? "└── " : "├── ").append("depth=").append(node.depth).append(" id=").append(node.id).append("\n");
             }
             List<KdNode> children = null;
             if (node.lesser != null || node.greater != null) {
-                children = new ArrayList<KdNode>(2);
+                children = new ArrayList<>(2);
                 if (node.lesser != null)
                     children.add(node.lesser);
                 if (node.greater != null)

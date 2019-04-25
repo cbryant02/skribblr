@@ -28,7 +28,5 @@ public class Main extends Application {
         stage.setScene(new Scene(root, root.prefWidth(-1), root.prefHeight(-1)));
         stage.setResizable(false);
         stage.show();
-
-        ProgressPopup p = new ProgressPopup(640*480);
     }
 }

@@ -1,11 +1,12 @@
 package com.github.cbryant02.skribblr.util;
 
 import com.jwetherell.algorithms.datastructures.KdTree;
+
 import java.awt.Color;
 
-public class ColorPoint extends KdTree.XYZPoint {
+class ColorPoint extends KdTree.XYZPoint {
 
-    public ColorPoint(Color color) {
+    ColorPoint(Color color) {
         super(color.getRed(), color.getGreen(), color.getBlue());
     }
 
@@ -13,15 +14,15 @@ public class ColorPoint extends KdTree.XYZPoint {
         super(r, g, b);
     }
 
-    public int getR() {
+    int getR() {
         return (int)super.getX();
     }
 
-    public int getG() {
+    int getG() {
         return (int)super.getY();
     }
 
-    public int getB() {
+    int getB() {
         return (int)super.getZ();
     }
 
