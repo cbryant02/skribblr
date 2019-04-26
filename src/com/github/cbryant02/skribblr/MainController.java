@@ -1,12 +1,15 @@
 package com.github.cbryant02.skribblr;
 
 import com.github.cbryant02.skribblr.util.DrawUtils;
+import java.io.FileNotFoundException;
+import java.util.concurrent.ExecutionException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
@@ -65,7 +68,7 @@ public class MainController {
     }
 
     @FXML
-    public void onLoadButtonPressed() throws Exception {
+    public void onLoadFileButtonPressed() throws ExecutionException, InterruptedException, FileNotFoundException {
         FileChooser fileChooser = preloadFileChooserFuture.get();
         fileChooser.setTitle("Choose an image");
 
@@ -99,6 +102,13 @@ public class MainController {
     }
 
     @FXML
+    public void onLoadWebButtonPressed() {
+        TextInputDialog prompt = new TextInputDialog();
+        prompt.setTitle("Load image from URL");
+        prompt.setHeaderText("Enter a URL:");
+    }
+
+    @FXML
     public void onTextFieldUpdate(ActionEvent e) {
         TextField field = (TextField)e.getSource();
         String input = field.getText();
@@ -114,8 +124,8 @@ public class MainController {
                 skipPixels = SKIP_PIXELS_DEFAULT;
                 return;
             }
-            skipPixels = formatInput(input, 10);
-            skipPixelsInput.setText(skipPixels + "%");
+            skipPixels = formatSkipPixels(input);
+            skipPixelsInput.setText(skipPixels + "px");
             skipPixelsInput.deselect();
         } else if (field.equals(imageScaleInput)) {
             // Reset value to default and return if input is empty
@@ -123,20 +133,34 @@ public class MainController {
                 imageScale = IMAGE_SCALE_DEFAULT;
                 return;
             }
-            imageScale = formatInput(input, 100);
+            imageScale = formatImageScale(input);
             imageScaleInput.setText(imageScale + "%");
         }
     }
 
-    private int formatInput(String s, int max) {
+    // Handles NumberFormatExceptions and bound checking for imageScale
+    private int formatImageScale(String s) {
         int r;
         try {
             r = Integer.valueOf(s);
         } catch (NumberFormatException ex) {
             return imageScale;
         }
-        if(r > max || r < 0)
+        if(r > 100 || r < 0)
             return imageScale;
+        return r;
+    }
+
+    // Handles NumberFormatExceptions and bound checking for skipPixels
+    private int formatSkipPixels(String s) {
+        int r;
+        try {
+            r = Integer.valueOf(s);
+        } catch (NumberFormatException ex) {
+            return skipPixels;
+        }
+        if(r > 10 || r < 0)
+            return skipPixels;
         return r;
     }
 }

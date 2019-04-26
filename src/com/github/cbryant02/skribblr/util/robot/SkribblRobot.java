@@ -6,6 +6,7 @@ import com.github.cbryant02.skribblr.util.Skribbl;
 import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
+import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.SynchronousQueue;
 
@@ -14,7 +15,7 @@ import java.util.concurrent.SynchronousQueue;
  */
 public class SkribblRobot extends Robot {
     private final int delayMul;
-    private final Queue<Runnable> actionQueue = new SynchronousQueue<>();
+    private final Queue<Runnable> actionQueue;
 
     /**
      * Construct a new SkribblRobot with the specified {@code delayMul}.
@@ -26,10 +27,14 @@ public class SkribblRobot extends Robot {
      * GraphicsEnvironment.isHeadless() returns true
      */
     public SkribblRobot(int delayMul) throws IllegalArgumentException, AWTException {
-        super();
+        // Bounds check delayMul
         if(delayMul > 0)
             this.delayMul = delayMul;
         else throw new IllegalArgumentException("Delay multiplier passed to SkribblRobot was negative or zero");
+
+        // Initialize queue and start worker
+        actionQueue = new ArrayDeque<>();
+        new Thread(new QueueWorkerRunnable(actionQueue));
     }
 
     /**
@@ -39,23 +44,24 @@ public class SkribblRobot extends Robot {
      * GraphicsEnvironment.isHeadless() returns true
      */
     public SkribblRobot() throws AWTException {
-        super();
-        this.delayMul = 1;
+        this(1);
     }
 
     /**
      * Press and release mouse with a delay.
      */
     public void mouseClick() {
-        super.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        actionQueue.offer(() -> {
+            super.mousePress(InputEvent.BUTTON1_DOWN_MASK);
 
-        try {
-            Thread.sleep(10L * delayMul);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+            try {
+                Thread.sleep(10L * delayMul);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
-        super.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+            super.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+        });
     }
 
     /**
@@ -63,8 +69,10 @@ public class SkribblRobot extends Robot {
      * @param color Color to select
      */
     public void select(Skribbl.Color color) {
-        super.mouseMove(color.getX(), color.getY());
-        mouseClick();
+        actionQueue.offer(() -> {
+            super.mouseMove(color.getX(), color.getY());
+            mouseClick();
+        });
     }
 
     /**
@@ -72,7 +80,10 @@ public class SkribblRobot extends Robot {
      * @param tool Tool to select
      */
     public void select(Skribbl.Tool tool) {
-
+        actionQueue.offer(() -> {
+            super.mouseMove(tool.getX(), tool.getY());
+            mouseClick();
+        });
     }
 
     private class QueueWorkerRunnable implements Runnable {
@@ -92,7 +103,7 @@ public class SkribblRobot extends Robot {
                         while (q.isEmpty())
                             q.wait();
 
-
+                        q.remove().run();
                     }
                 } catch (InterruptedException ex) { break; }
             }

@@ -91,7 +91,7 @@ public class DrawUtils {
      * @return Scaled image
      */
     public static Image scaleImage(final Image image, double factor) {
-        return SwingFXUtils.toFXImage(scaleImage(SwingFXUtils.fromFXImage(image, null), factor), null);
+        return SwingFXUtils.toFXImage(scaleImage(SwingFXUtils.fromFXImage(image, null), factor/100.0), null);
     }
 
     /**
