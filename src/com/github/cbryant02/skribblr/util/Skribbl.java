@@ -1,5 +1,8 @@
 package com.github.cbryant02.skribblr.util;
 
+/**
+ * Defines enums for color/tool positions.
+ */
 public class Skribbl {
     public enum Color {
         WHITE(0xFFFFFF, 580, 770),
@@ -45,6 +48,12 @@ public class Skribbl {
 
         public int getY() {
             return y;
+        }
+
+        public static Color valueOf(int rgb) {
+            for(Color color : Color.values())
+                if(color.color == rgb) return color;
+            return null;
         }
     }
 

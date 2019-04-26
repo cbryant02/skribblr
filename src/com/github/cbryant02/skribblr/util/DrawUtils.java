@@ -1,10 +1,12 @@
 package com.github.cbryant02.skribblr.util;
 
+import com.github.cbryant02.skribblr.util.robot.SkribblRobot;
 import com.jwetherell.algorithms.datastructures.KdTree;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
+import java.awt.AWTException;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -29,10 +31,18 @@ public class DrawUtils {
     public static Task<Void> draw(final BufferedImage image) {
         return new Task<Void>() {
             @Override
-            protected Void call() {
+            protected Void call() throws AWTException {
+                SkribblRobot bot = new SkribblRobot();
                 for(int y = 0; y < image.getHeight(); y++) {
                     for(int x = 0; x < image.getWidth(); x++) {
+                        Skribbl.Color pixel = Skribbl.Color.valueOf(image.getRGB(x, y));
 
+                        // Select color from palette
+                        bot.select(pixel);
+
+                        // Draw color on screen
+                        bot.mouseMove(x, y);
+                        bot.mouseClick();
                     }
                 }
                 return null;

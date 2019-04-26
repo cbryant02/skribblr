@@ -33,12 +33,12 @@ public class MainController {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private int skipPixels;
-    private double imageScale;
+    private int imageScale;
 
     private static final int SKIP_PIXELS_DEFAULT = 0;
-    private static final double IMAGE_SCALE_DEFAULT = 1.0;
+    private static final int IMAGE_SCALE_DEFAULT = 100;
 
-    public MainController(Stage stage) {
+    MainController(Stage stage) {
         this.stage = stage;
     }
 
@@ -101,19 +101,42 @@ public class MainController {
     @FXML
     public void onTextFieldUpdate(ActionEvent e) {
         TextField field = (TextField)e.getSource();
-        if(field.equals(skipPixelsInput)) {
-            if(skipPixelsInput.getText().isEmpty())
-                skipPixels = SKIP_PIXELS_DEFAULT;
-        } else {
+        String input = field.getText();
 
+        // Clean input string
+        if(input.contains("."))
+            input = input.split("\\.")[0].trim();
+        input = input.replaceAll("[^\\d]", "");
+
+        if(field.equals(skipPixelsInput)) {
+            // Reset value to default and return if input is empty
+            if(input.isEmpty()) {
+                skipPixels = SKIP_PIXELS_DEFAULT;
+                return;
+            }
+            skipPixels = formatInput(input, 10);
+            skipPixelsInput.setText(skipPixels + "%");
+            skipPixelsInput.deselect();
+        } else if (field.equals(imageScaleInput)) {
+            // Reset value to default and return if input is empty
+            if(input.isEmpty()) {
+                imageScale = IMAGE_SCALE_DEFAULT;
+                return;
+            }
+            imageScale = formatInput(input, 100);
+            imageScaleInput.setText(imageScale + "%");
         }
     }
 
-    private double formatImageScale(String s) {
-        return -1;
-    }
-
-    private int formatSkipPixels(String s) {
-        return -1;
+    private int formatInput(String s, int max) {
+        int r;
+        try {
+            r = Integer.valueOf(s);
+        } catch (NumberFormatException ex) {
+            return imageScale;
+        }
+        if(r > max || r < 0)
+            return imageScale;
+        return r;
     }
 }
