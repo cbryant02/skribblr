@@ -3,8 +3,13 @@ package com.github.cbryant02.skribblr.util;
 /**
  * Defines enums for color/tool positions.
  */
-public class Skribbl {
-    public enum Color {
+public interface Skribbl {
+    int CANVAS_X = 484;
+    int CANVAS_Y = 148;
+    int CANVAS_W = 800;
+    int CANVAS_H = 600;
+
+    enum Color {
         WHITE(0xFFFFFF, 580, 770),
         GREY(0xC1C1C1, 604, 770),
         RED(0xEF130B, 628, 770),
@@ -50,14 +55,14 @@ public class Skribbl {
             return y;
         }
 
-        public static Color valueOf(int rgb) {
-            for(Color color : Color.values())
-                if(color.color == rgb) return color;
+        public static Color valueOf(java.awt.Color color) {
+            for(Color pcolor : Color.values())
+                if(pcolor.getColor().equals(color)) return pcolor;
             return null;
         }
     }
 
-    public enum Tool {
+    enum Tool {
         PENCIL(870),
         ERASER(918),
         BUCKET(966);

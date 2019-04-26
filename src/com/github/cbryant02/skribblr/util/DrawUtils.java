@@ -7,6 +7,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
 import java.awt.AWTException;
+import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -23,26 +24,35 @@ public class DrawUtils {
             tree.add(new ColorPoint(color.getColor()));
     }
 
+    public static Task<Void> draw(final Image image) {
+        return draw(SwingFXUtils.fromFXImage(image, null));
+    }
+
     /**
      * Draw an image.
      * @param image Image to draw
      * @return Drawing task, for tracking progress only. No result.
      */
-    public static Task<Void> draw(final BufferedImage image) {
+    private static Task<Void> draw(final BufferedImage image) {
         return new Task<Void>() {
             @Override
             protected Void call() throws AWTException {
                 SkribblRobot bot = new SkribblRobot();
+
+                int progress = 0;
+                int max = image.getWidth() * image.getHeight();
                 for(int y = 0; y < image.getHeight(); y++) {
                     for(int x = 0; x < image.getWidth(); x++) {
-                        Skribbl.Color pixel = Skribbl.Color.valueOf(image.getRGB(x, y));
+                        Skribbl.Color pixel = Skribbl.Color.valueOf(new Color(image.getRGB(x, y)));
 
                         // Select color from palette
                         bot.select(pixel);
 
                         // Draw color on screen
-                        bot.mouseMove(x, y);
+                        bot.mouseMove(x + Skribbl.CANVAS_X, y + Skribbl.CANVAS_Y);
                         bot.mouseClick();
+
+                        updateProgress(++progress, max);
                     }
                 }
                 return null;
@@ -91,7 +101,7 @@ public class DrawUtils {
      * @return Scaled image
      */
     public static Image scaleImage(final Image image, double factor) {
-        return SwingFXUtils.toFXImage(scaleImage(SwingFXUtils.fromFXImage(image, null), factor/100.0), null);
+        return SwingFXUtils.toFXImage(scaleImage(SwingFXUtils.fromFXImage(image, null), factor), null);
     }
 
     /**

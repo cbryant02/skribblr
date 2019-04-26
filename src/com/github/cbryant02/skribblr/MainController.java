@@ -3,6 +3,8 @@ package com.github.cbryant02.skribblr;
 import com.github.cbryant02.skribblr.util.DrawUtils;
 import java.io.FileNotFoundException;
 import java.util.concurrent.ExecutionException;
+
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
@@ -32,9 +34,10 @@ public class MainController {
     @FXML private Button drawButton;
 
     private final Stage stage;
+    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private Image currentImage;
+    private Image currentImageConverted;
     private FutureTask<FileChooser> preloadFileChooserFuture;
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
-
     private int skipPixels;
     private int imageScale;
 
@@ -60,11 +63,18 @@ public class MainController {
         skipPixels = SKIP_PIXELS_DEFAULT;
     }
 
-    private void loadImage(Image original) {
-        Image converted = DrawUtils.scaleImage(DrawUtils.skribblify(original), imageScale);
+    private void loadImage(Image image) {
+        originalImageView.setImage(image);
+        currentImage = image;
 
-        originalImageView.setImage(original);
-        skribblImageView.setImage(converted);
+        process(image);
+    }
+
+    // Process and display 'skribblified' image
+    private void process(Image image) {
+        Image converted = DrawUtils.scaleImage(DrawUtils.skribblify(image), imageScale/100.0);
+        skribblImageView.setImage(DrawUtils.scaleImage(converted, 100.0/imageScale));
+        currentImageConverted = converted;
     }
 
     @FXML
@@ -109,11 +119,25 @@ public class MainController {
     }
 
     @FXML
+    public void onDrawButtonPressed() {
+        drawButton.setDisable(true);                                    // Disable draw button while drawing
+        Task<Void> drawTask = DrawUtils.draw(currentImageConverted);
+        executor.execute(drawTask);
+
+        // Enable draw button again when finished
+        drawTask.setOnSucceeded(event -> {
+            drawButton.setDisable(false);
+            event.consume();
+        });
+        ProgressPopup popup = new ProgressPopup("Drawing...", (int)(currentImageConverted.getWidth()*currentImageConverted.getHeight()));
+    }
+
+    @FXML
     public void onTextFieldUpdate(ActionEvent e) {
         TextField field = (TextField)e.getSource();
         String input = field.getText();
 
-        // Clean input string
+        // Sanitize input string
         if(input.contains("."))
             input = input.split("\\.")[0].trim();
         input = input.replaceAll("[^\\d]", "");
@@ -126,7 +150,6 @@ public class MainController {
             }
             skipPixels = formatSkipPixels(input);
             skipPixelsInput.setText(skipPixels + "px");
-            skipPixelsInput.deselect();
         } else if (field.equals(imageScaleInput)) {
             // Reset value to default and return if input is empty
             if(input.isEmpty()) {
@@ -135,6 +158,7 @@ public class MainController {
             }
             imageScale = formatImageScale(input);
             imageScaleInput.setText(imageScale + "%");
+            process(currentImage);                      // Reprocess
         }
     }
 

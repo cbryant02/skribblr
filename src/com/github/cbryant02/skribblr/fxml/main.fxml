@@ -104,11 +104,6 @@
             <tooltip>
                <Tooltip prefWidth="150.0" text="Number of pixels to skip when drawing. Significant quality drop, lots of speed. (max 10)" width="150.0" wrapText="true" />
             </tooltip></TextField>
-           <Button fx:id="drawButton" defaultButton="true" disable="true" layoutX="1179.0" maxWidth="75.0" mnemonicParsing="false" prefWidth="75.0" text="Draw!" textAlignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-              <font>
-                  <Font size="13.0" />
-              </font>
-           </Button>
          <Button alignment="CENTER" layoutX="1094.0" mnemonicParsing="false" onAction="#onLoadWebButtonPressed" prefHeight="30.0" prefWidth="75.0" text="Load (Web)" textAlignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="90.0" AnchorPane.topAnchor="0.0">
             <tooltip>
                <Tooltip text="Load an image." />
@@ -117,6 +112,11 @@
                <Font size="11.0" />
             </font>
          </Button>
+           <Button fx:id="drawButton" defaultButton="true" disable="true" layoutX="1179.0" maxWidth="75.0" mnemonicParsing="false" onAction="#onDrawButtonPressed" prefWidth="75.0" text="Draw!" textAlignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              <font>
+                  <Font size="13.0" />
+              </font>
+           </Button>
        </AnchorPane>
    </bottom>
 </BorderPane>
