@@ -10,7 +10,9 @@ import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
-import java.awt.image.BufferedImage;
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.event.InputEvent;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,6 +55,15 @@ public class Main extends Application {
                 try {
                     GlobalScreen.unregisterNativeHook();
                 } catch (NativeHookException e) { e.printStackTrace(); }
+
+                // If we were drawing, the mouse is probably still pressed down; release it
+                Robot r = null;
+                try {
+                    r = new Robot();
+                } catch (AWTException e) { e.printStackTrace(); }
+                assert r != null;
+                r.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+
                 System.exit(0);
             }
         }

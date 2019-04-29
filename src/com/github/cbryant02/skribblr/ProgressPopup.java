@@ -1,5 +1,6 @@
 package com.github.cbryant02.skribblr;
 
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -15,13 +16,8 @@ import java.io.IOException;
 class ProgressPopup {
     private final ProgressController controller;
     private final Stage stage;
-    private int current;
-    private final int target;
 
-    public ProgressPopup(String message, int max) {
-        this.current = 0;
-        this.target = max;
-
+    ProgressPopup(String message, Task task) {
         Rectangle2D screenBounds = Screen.getPrimary().getBounds();
 
         // Load layout
@@ -40,7 +36,6 @@ class ProgressPopup {
         stage.setScene(new Scene(root, root.prefWidth(-1), root.prefHeight(-1)));
         stage.setResizable(false);
         stage.setAlwaysOnTop(true);
-        stage.show();
 
         // Get layout controller
         controller = loader.getController();
@@ -49,20 +44,12 @@ class ProgressPopup {
         stage.setX(screenBounds.getWidth() - stage.getWidth() - 10);
         stage.setY(10);
 
-        // Set initial progress text
-        update();
+        // Bind task progress to bar and set initial progress text
+        controller.progressBar.progressProperty().bind(task.progressProperty());
     }
 
-    public void progress(int progress) {
-        this.current = progress;
-        if (current >= target)
-            stage.close();
-        update();
-    }
-
-    private void update() {
-        controller.progressBar.setProgress(current/target);
-        controller.progressLabel.setText(String.format("%d/%d", current, target));
+    void show() {
+        stage.show();
     }
 
     private class ProgressController {

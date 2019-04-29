@@ -1,9 +1,6 @@
 package com.github.cbryant02.skribblr;
 
 import com.github.cbryant02.skribblr.util.DrawUtils;
-import java.io.FileNotFoundException;
-import java.util.concurrent.ExecutionException;
-
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -20,6 +17,8 @@ import javafx.stage.Stage;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
@@ -124,6 +123,10 @@ public class MainController {
         drawButton.setDisable(true);                                    // Disable draw button while drawing
         Task<Void> drawTask = DrawUtils.draw(currentImageConverted, imageScale/100.0);
         executor.execute(drawTask);
+
+        // Open progress indicator
+        ProgressPopup p = new ProgressPopup("Drawing...", drawTask);
+        p.show();
 
         // Enable draw button again when finished
         drawTask.setOnSucceeded(event -> {
