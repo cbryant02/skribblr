@@ -4,8 +4,8 @@ package com.github.cbryant02.skribblr.util;
  * Defines enums for color/tool positions.
  */
 public interface Skribbl {
-    int CANVAS_X = 484;
-    int CANVAS_Y = 148;
+    int CANVAS_X = 500;
+    int CANVAS_Y = 160;
     int CANVAS_W = 800;
     int CANVAS_H = 600;
 

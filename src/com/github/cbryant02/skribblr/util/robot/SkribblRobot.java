@@ -13,6 +13,8 @@ import java.util.Queue;
  * Adds some convenience methods for prettier code and implements an action queue.
  */
 public class SkribblRobot extends Robot {
+    private static final long BASE_DELAY = 1000L;
+
     private final int delayMul;
     private final Queue<Runnable> q;
 
@@ -53,9 +55,7 @@ public class SkribblRobot extends Robot {
         synchronized (q) {
             q.offer(() -> {
                 super.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-                try {
-                    Thread.sleep(10L * delayMul);
-                } catch (InterruptedException e) { e.printStackTrace(); }
+                delay();
                 super.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
             });
             q.notify();
@@ -70,6 +70,7 @@ public class SkribblRobot extends Robot {
         synchronized (q) {
             q.offer(() -> {
                 super.mouseMove(color.getX(), color.getY());
+                delay();
                 mouseClick();
             });
             q.notify();
@@ -84,6 +85,7 @@ public class SkribblRobot extends Robot {
         synchronized (q) {
             q.offer(() -> {
                 super.mouseMove(tool.getX(), tool.getY());
+                delay();
                 mouseClick();
             });
             q.notify();
@@ -95,6 +97,12 @@ public class SkribblRobot extends Robot {
             q.offer(() -> System.out.println(p));
             q.notify();
         }
+    }
+
+    private void delay() {
+        try {
+            Thread.sleep(BASE_DELAY * delayMul);
+        } catch (InterruptedException e) { e.printStackTrace(); }
     }
 
     private class QueueWorkerRunnable implements Runnable {
@@ -113,6 +121,7 @@ public class SkribblRobot extends Robot {
                             q.wait();
 
                         q.remove().run();
+                        delay();
                     }
                 } catch (InterruptedException ex) { break; }
             }

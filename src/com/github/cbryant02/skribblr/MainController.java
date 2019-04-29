@@ -72,7 +72,8 @@ public class MainController {
 
     // Process and display 'skribblified' image
     private void process(Image image) {
-        Image converted = DrawUtils.scaleImage(DrawUtils.skribblify(image), imageScale/100.0);
+        Image converted = DrawUtils.skribblify(image);
+        converted = DrawUtils.scaleImage(converted, imageScale/100.0);
         skribblImageView.setImage(DrawUtils.scaleImage(converted, 100.0/imageScale));
         currentImageConverted = converted;
     }
@@ -121,7 +122,7 @@ public class MainController {
     @FXML
     public void onDrawButtonPressed() {
         drawButton.setDisable(true);                                    // Disable draw button while drawing
-        Task<Void> drawTask = DrawUtils.draw(currentImageConverted);
+        Task<Void> drawTask = DrawUtils.draw(currentImageConverted, imageScale/100.0);
         executor.execute(drawTask);
 
         // Enable draw button again when finished
@@ -129,7 +130,6 @@ public class MainController {
             drawButton.setDisable(false);
             event.consume();
         });
-        ProgressPopup popup = new ProgressPopup("Drawing...", (int)(currentImageConverted.getWidth()*currentImageConverted.getHeight()));
     }
 
     @FXML
@@ -158,7 +158,8 @@ public class MainController {
             }
             imageScale = formatImageScale(input);
             imageScaleInput.setText(imageScale + "%");
-            process(currentImage);                      // Reprocess
+            if(currentImageConverted != null)
+                process(currentImage);
         }
     }
 

@@ -8,6 +8,8 @@ import javafx.scene.image.Image;
 
 import java.awt.AWTException;
 import java.awt.Color;
+import java.awt.Robot;
+import java.awt.event.InputEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -24,8 +26,8 @@ public class DrawUtils {
             tree.add(new ColorPoint(color.getColor()));
     }
 
-    public static Task<Void> draw(final Image image) {
-        return draw(SwingFXUtils.fromFXImage(image, null));
+    public static Task<Void> draw(final Image image, double scale) {
+        return draw(SwingFXUtils.fromFXImage(image, null), scale);
     }
 
     /**
@@ -33,28 +35,46 @@ public class DrawUtils {
      * @param image Image to draw
      * @return Drawing task, for tracking progress only. No result.
      */
-    private static Task<Void> draw(final BufferedImage image) {
+    private static Task<Void> draw(final BufferedImage image, double scale) {
+        // Scale image back up to drawbox size
+        BufferedImage scaled;
+        if(image.getWidth() < image.getHeight()) scaled = scaleImage(image, (double)(image.getHeight()/Skribbl.CANVAS_H));
+        else scaled = scaleImage(image, (double)(image.getWidth()/Skribbl.CANVAS_W));
+
         return new Task<Void>() {
             @Override
             protected Void call() throws AWTException {
-                SkribblRobot bot = new SkribblRobot();
+                //SkribblRobot bot = new SkribblRobot();
+                Robot bot = new Robot();
 
                 int progress = 0;
                 int max = image.getWidth() * image.getHeight();
-                for(int y = 0; y < image.getHeight(); y++) {
-                    for(int x = 0; x < image.getWidth(); x++) {
-                        Skribbl.Color pixel = Skribbl.Color.valueOf(new Color(image.getRGB(x, y)));
+                try {
+                    for (int y = 0; y < image.getHeight(); y++) {
+                        for (int x = 0; x < image.getWidth(); x++) {
+                            Skribbl.Color pixel = Skribbl.Color.valueOf(new Color(image.getRGB(x, y)));
 
-                        // Select color from palette
-                        bot.select(pixel);
+                            // Skip background color
+                            if (new Color(image.getRGB(x, y), true).getAlpha() < 255 || pixel == Skribbl.Color.WHITE)
+                                continue;
 
-                        // Draw color on screen
-                        bot.mouseMove(x + Skribbl.CANVAS_X, y + Skribbl.CANVAS_Y);
-                        bot.mouseClick();
+                            // Select color from palette
+                            bot.mouseMove(pixel.getX(), pixel.getY());
+                            bot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+                            Thread.sleep(10L);
+                            bot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 
-                        updateProgress(++progress, max);
+                            // Draw color on screen
+                            bot.mouseMove(x + Skribbl.CANVAS_X, y + Skribbl.CANVAS_Y);
+                            bot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+                            Thread.sleep(10L);
+                            bot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+
+                            Thread.sleep(10L);
+                            updateProgress(++progress, max);
+                        }
                     }
-                }
+                } catch (InterruptedException ex) { ex.printStackTrace(); }
                 return null;
             }
         };
@@ -111,7 +131,7 @@ public class DrawUtils {
      * @return Scaled image
      */
     private static BufferedImage scaleImage(final BufferedImage image, double factor) {
-        BufferedImage clone = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+        BufferedImage clone = new BufferedImage((int)(image.getWidth()*factor), (int)(image.getHeight()*factor), image.getType());
 
         AffineTransform transform = new AffineTransform();
         transform.scale(factor, factor);

@@ -12,7 +12,6 @@ import java.util.*;
  * @see <a href="https://en.wikipedia.org/wiki/K-d_tree">K-D Tree (Wikipedia)</a>
  * <br>
  * @author Justin Wetherell <phishman3579@gmail.com>
- * @implNote
  */
 public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
 
