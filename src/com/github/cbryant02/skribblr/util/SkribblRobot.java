@@ -8,8 +8,8 @@ import java.awt.event.InputEvent;
 /**
  * Adds some convenience methods for prettier code
  */
-public class SkribblRobot extends Robot {
-    private static final long BASE_DELAY = 5L;
+class SkribblRobot extends Robot {
+    private static final long BASE_DELAY = 2L;
 
     private final int delayMul;
 

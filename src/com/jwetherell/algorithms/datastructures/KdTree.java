@@ -15,7 +15,7 @@ import java.util.*;
  */
 public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
 
-    private int k = 3;
+    private final int k = 3;
     private KdNode root = null;
 
     private static final Comparator<XYZPoint> X_COMPARATOR = new Comparator<XYZPoint>() {
@@ -454,7 +454,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
         return TreePrinter.getString(this);
     }
 
-    protected static class EuclideanComparator implements Comparator<KdNode> {
+    static class EuclideanComparator implements Comparator<KdNode> {
 
         private final XYZPoint point;
 
@@ -501,7 +501,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
         return results.descendingIterator();
     }
 
-    public static class KdNode implements Comparable<KdNode> {
+    static class KdNode implements Comparable<KdNode> {
 
         private final XYZPoint id;
         private final int k;
@@ -567,10 +567,9 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
          */
         @Override
         public String toString() {
-            String string = "k=" + k +
+            return "k=" + k +
                     " depth=" + depth +
                     " id=" + id.toString();
-            return string;
         }
     }
 
@@ -599,7 +598,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
          * @param y Y coordinate
          * @param z Z coordinate
          */
-        public XYZPoint(double x, double y, double z) {
+        protected XYZPoint(double x, double y, double z) {
             this.x = x;
             this.y = y;
             this.z = z;
@@ -684,16 +683,15 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
          */
         @Override
         public String toString() {
-            String string = "(" +
+            return "(" +
                     x + ", " +
                     y + ", " +
                     z +
                     ")";
-            return string;
         }
     }
 
-    protected static class TreePrinter {
+    static class TreePrinter {
 
         static <T extends XYZPoint> String getString(KdTree<T> tree) {
             if (tree.root == null)

@@ -121,7 +121,7 @@ public class MainController {
     @FXML
     public void onDrawButtonPressed() {
         drawButton.setDisable(true);                                    // Disable draw button while drawing
-        Task<Void> drawTask = DrawUtils.draw(currentImageConverted, imageScale/100.0);
+        Task<Void> drawTask = DrawUtils.draw(currentImageConverted, skipPixels);
         executor.execute(drawTask);
 
         // Open progress indicator

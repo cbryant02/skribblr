@@ -43,6 +43,8 @@ public class Main extends Application {
         // Add ESC listener
         GlobalScreen.registerNativeHook();
         GlobalScreen.addNativeKeyListener(new HaltListener());
+
+
     }
 
     private class HaltListener implements NativeKeyListener {

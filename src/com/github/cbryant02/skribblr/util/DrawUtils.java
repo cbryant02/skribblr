@@ -23,8 +23,8 @@ public class DrawUtils {
             tree.add(new ColorPoint(color.getColor()));
     }
 
-    public static Task<Void> draw(final Image image, double scale) {
-        return draw(SwingFXUtils.fromFXImage(image, null), scale);
+    public static Task<Void> draw(final Image image, int skipPixels) {
+        return draw(SwingFXUtils.fromFXImage(image, null), skipPixels);
     }
 
     /**
@@ -32,7 +32,7 @@ public class DrawUtils {
      * @param image Image to draw
      * @return Drawing task, for tracking progress only. No result.
      */
-    private static Task<Void> draw(final BufferedImage image, double _scale) {
+    private static Task<Void> draw(final BufferedImage image, int skipPixels) {
         return new Task<Void>() {
             @Override
             protected Void call() throws AWTException {
@@ -47,11 +47,11 @@ public class DrawUtils {
 
                 int progress = 0;
                 int max = image.getWidth() * image.getHeight();
-                for (int y = 0; y < image.getHeight(); y++) {
+                for (int y = 0; y < image.getHeight(); y+=(1+skipPixels)) {
                     if(y > Skribbl.CANVAS_H)
                         break;
 
-                    for (int x = 0; x < image.getWidth(); x++) {
+                    for (int x = 0; x < image.getWidth(); x+=(1+skipPixels)) {
                         updateProgress(++progress, max);
                         Skribbl.Color pixel = Skribbl.Color.valueOf(new Color(image.getRGB(x, y)));
 

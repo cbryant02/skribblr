@@ -14,7 +14,6 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 class ProgressPopup {
-    private final ProgressController controller;
     private final Stage stage;
 
     ProgressPopup(String message, Task task) {
@@ -38,7 +37,7 @@ class ProgressPopup {
         stage.setAlwaysOnTop(true);
 
         // Get layout controller
-        controller = loader.getController();
+        ProgressController controller = loader.getController();
 
         // Position stage in top right corner
         stage.setX(screenBounds.getWidth() - stage.getWidth() - 10);
