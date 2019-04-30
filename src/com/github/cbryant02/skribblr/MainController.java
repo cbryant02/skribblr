@@ -128,10 +128,11 @@ public class MainController {
         ProgressPopup p = new ProgressPopup("Drawing...", drawTask);
         p.show();
 
-        // Enable draw button again when finished
+        // Enable draw button again and close progress window when finished
         drawTask.setOnSucceeded(event -> {
             drawButton.setDisable(false);
             event.consume();
+            p.close();
         });
     }
 

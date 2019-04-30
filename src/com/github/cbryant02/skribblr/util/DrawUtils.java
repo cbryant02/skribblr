@@ -47,34 +47,26 @@ public class DrawUtils {
 
                 int progress = 0;
                 int max = image.getWidth() * image.getHeight();
-                try {
-                    for (int y = 0; y < image.getHeight(); y++) {
-                        if(y > Skribbl.CANVAS_H) {
-                            updateProgress(max, max);
-                            break;
-                        }
+                for (int y = 0; y < image.getHeight(); y++) {
+                    if(y > Skribbl.CANVAS_H)
+                        break;
 
-                        for (int x = 0; x < image.getWidth(); x++) {
-                            Skribbl.Color pixel = Skribbl.Color.valueOf(new Color(image.getRGB(x, y)));
+                    for (int x = 0; x < image.getWidth(); x++) {
+                        updateProgress(++progress, max);
+                        Skribbl.Color pixel = Skribbl.Color.valueOf(new Color(image.getRGB(x, y)));
 
-                            // Skip background color / transparent pixels
-                            if (new Color(image.getRGB(x, y), true).getAlpha() < 255 || pixel == Skribbl.Color.WHITE) {
-                                ++progress;
-                                continue;
-                            }
+                        // Skip background color / transparent pixels
+                        if (new Color(image.getRGB(x, y), true).getAlpha() < 255 || pixel == Skribbl.Color.WHITE)
+                            continue;
 
-                            // Select color from palette
-                            bot.select(pixel);
+                        // Select color from palette
+                        bot.select(pixel);
 
-                            // Draw color on screen
-                            bot.mouseMove((int)((x * scale) + Skribbl.CANVAS_X), (int)((y * scale) + Skribbl.CANVAS_Y));
-                            bot.mouseClick();
-
-                            Thread.sleep(10L);
-                            updateProgress(++progress, max);
-                        }
+                        // Draw color on screen
+                        bot.mouseMove((int)((x * scale) + Skribbl.CANVAS_X), (int)((y * scale) + Skribbl.CANVAS_Y));
+                        bot.mouseClick();
                     }
-                } catch (InterruptedException ex) { ex.printStackTrace(); }
+                }
                 return null;
             }
         };

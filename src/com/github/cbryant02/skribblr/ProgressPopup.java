@@ -52,6 +52,10 @@ class ProgressPopup {
         stage.show();
     }
 
+    void close() {
+        stage.close();
+    }
+
     private class ProgressController {
         @FXML private Label progressLabel;
         @FXML private ProgressBar progressBar;
