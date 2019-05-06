@@ -9,7 +9,7 @@ import java.awt.event.InputEvent;
  * Adds some convenience methods for prettier code
  */
 class SkribblRobot extends Robot {
-    private static final long BASE_DELAY = 2L;
+    private static final long BASE_DELAY = 3L;
 
     private final int delayMul;
 

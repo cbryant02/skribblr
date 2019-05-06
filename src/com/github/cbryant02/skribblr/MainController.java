@@ -28,7 +28,6 @@ public class MainController {
     @FXML private ImageView originalImageView;
     @FXML private ImageView skribblImageView;
     @FXML private Label imagePathLabel;
-    @FXML private TextField skipPixelsInput;
     @FXML private TextField imageScaleInput;
     @FXML private Button drawButton;
 
@@ -37,10 +36,8 @@ public class MainController {
     private Image currentImage;
     private Image currentImageConverted;
     private FutureTask<FileChooser> preloadFileChooserFuture;
-    private int skipPixels;
     private int imageScale;
 
-    private static final int SKIP_PIXELS_DEFAULT = 0;
     private static final int IMAGE_SCALE_DEFAULT = 100;
 
     MainController(Stage stage) {
@@ -59,7 +56,6 @@ public class MainController {
 
         // Default image scale and pixel skipping values
         imageScale = IMAGE_SCALE_DEFAULT;
-        skipPixels = SKIP_PIXELS_DEFAULT;
     }
 
     private void loadImage(Image image) {
@@ -89,9 +85,10 @@ public class MainController {
         FileChooser.ExtensionFilter filter = new FileChooser.ExtensionFilter("Images", "*.png", "*.bmp", "*.jpg", "*.gif");
         fileChooser.getExtensionFilters().add(filter);
 
-        // Get image file and check that it exists (in case user pressed cancel)
+        // Get image from user
         File imageFile = fileChooser.showOpenDialog(stage);
 
+        // showOpenDialog returns null if cancel was pressed. Null-check imageFile.
         if(imageFile == null || !imageFile.exists())
             return;
 
@@ -121,7 +118,7 @@ public class MainController {
     @FXML
     public void onDrawButtonPressed() {
         drawButton.setDisable(true);                                    // Disable draw button while drawing
-        Task<Void> drawTask = DrawUtils.draw(currentImageConverted, skipPixels);
+        Task<Void> drawTask = DrawUtils.draw(currentImageConverted);
         executor.execute(drawTask);
 
         // Open progress indicator
@@ -146,25 +143,17 @@ public class MainController {
             input = input.split("\\.")[0].trim();
         input = input.replaceAll("[^\\d]", "");
 
-        if(field.equals(skipPixelsInput)) {
-            // Reset value to default and return if input is empty
-            if(input.isEmpty()) {
-                skipPixels = SKIP_PIXELS_DEFAULT;
-                return;
-            }
-            skipPixels = formatSkipPixels(input);
-            skipPixelsInput.setText(skipPixels + "px");
-        } else if (field.equals(imageScaleInput)) {
-            // Reset value to default and return if input is empty
-            if(input.isEmpty()) {
-                imageScale = IMAGE_SCALE_DEFAULT;
-                return;
-            }
-            imageScale = formatImageScale(input);
-            imageScaleInput.setText(imageScale + "%");
-            if(currentImageConverted != null)
-                process(currentImage);
+        // Reset value to default and return if input is empty
+        if(input.isEmpty()) {
+            imageScale = IMAGE_SCALE_DEFAULT;
+            return;
         }
+
+        // Update value and reproces image
+        imageScale = formatImageScale(input);
+        imageScaleInput.setText(imageScale + "%");
+        if(currentImageConverted != null)
+            process(currentImage);
     }
 
     // Handles NumberFormatExceptions and bound checking for imageScale
@@ -177,19 +166,6 @@ public class MainController {
         }
         if(r > 100 || r < 0)
             return imageScale;
-        return r;
-    }
-
-    // Handles NumberFormatExceptions and bound checking for skipPixels
-    private int formatSkipPixels(String s) {
-        int r;
-        try {
-            r = Integer.valueOf(s);
-        } catch (NumberFormatException ex) {
-            return skipPixels;
-        }
-        if(r > 10 || r < 0)
-            return skipPixels;
         return r;
     }
 }

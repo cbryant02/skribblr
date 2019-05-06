@@ -5,13 +5,11 @@ import com.jwetherell.algorithms.datastructures.KdTree;
 import java.awt.Color;
 
 class ColorPoint extends KdTree.XYZPoint {
+    private Color color;
 
     ColorPoint(Color color) {
         super(color.getRed(), color.getGreen(), color.getBlue());
-    }
-
-    public ColorPoint(int r, int g, int b) {
-        super(r, g, b);
+        this.color = color;
     }
 
     int getR() {
@@ -24,9 +22,5 @@ class ColorPoint extends KdTree.XYZPoint {
 
     int getB() {
         return (int)super.getZ();
-    }
-
-    public Color toColor() {
-        return new Color(getR(), getG(), getB());
     }
 }

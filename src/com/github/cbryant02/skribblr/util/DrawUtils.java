@@ -23,8 +23,8 @@ public class DrawUtils {
             tree.add(new ColorPoint(color.getColor()));
     }
 
-    public static Task<Void> draw(final Image image, int skipPixels) {
-        return draw(SwingFXUtils.fromFXImage(image, null), skipPixels);
+    public static Task<Void> draw(final Image image) {
+        return draw(SwingFXUtils.fromFXImage(image, null));
     }
 
     /**
@@ -32,7 +32,7 @@ public class DrawUtils {
      * @param image Image to draw
      * @return Drawing task, for tracking progress only. No result.
      */
-    private static Task<Void> draw(final BufferedImage image, int skipPixels) {
+    private static Task<Void> draw(final BufferedImage image) {
         return new Task<Void>() {
             @Override
             protected Void call() throws AWTException {
@@ -47,11 +47,11 @@ public class DrawUtils {
 
                 int progress = 0;
                 int max = image.getWidth() * image.getHeight();
-                for (int y = 0; y < image.getHeight(); y+=(1+skipPixels)) {
+                for (int y = 0; y < image.getHeight(); y++) {
                     if(y > Skribbl.CANVAS_H)
                         break;
 
-                    for (int x = 0; x < image.getWidth(); x+=(1+skipPixels)) {
+                    for (int x = 0; x < image.getWidth(); x++) {
                         updateProgress(++progress, max);
                         Skribbl.Color pixel = Skribbl.Color.valueOf(new Color(image.getRGB(x, y)));
 
@@ -94,10 +94,9 @@ public class DrawUtils {
 
         for(int y = 0; y < image.getHeight(); y++) {
             for(int x = 0; x < image.getWidth(); x++) {
-                java.awt.Color rgb = new java.awt.Color(image.getRGB(x, y), true);
-                ColorPoint nearest = ((ColorPoint) tree.nearestNeighbourSearch(1, new ColorPoint(rgb)).toArray()[0]);
-
-                pixels.setPixel(x, y, new int[]{nearest.getR(), nearest.getG(), nearest.getB(), rgb.getAlpha()});
+                Color oldPixel = new Color(image.getRGB(x, y), true);
+                ColorPoint newPixel = ((ColorPoint) tree.nearestNeighbourSearch(1, new ColorPoint(oldPixel)).toArray()[0]);
+                pixels.setPixel(x, y, new int[]{newPixel.getR(), newPixel.getG(), newPixel.getB(), oldPixel.getAlpha()});
             }
         }
 
@@ -137,7 +136,7 @@ public class DrawUtils {
      * @param bits Original 24-bit color integer
      * @return RGB bytes
      */
-    public static int[] splitColor(int bits) {
+    private static int[] splitColor(int bits) {
         int[] rgb = new int[3];
 
         // Mask bits
@@ -146,5 +145,11 @@ public class DrawUtils {
         rgb[2] =  (bits & 0x0000FF);
 
         return rgb;
+    }
+
+    private static int[] add(int[] a, double b) {
+        for(int i = 0; i < a.length; i++)
+            a[i] += b;
+        return a;
     }
 }

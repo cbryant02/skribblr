@@ -10,7 +10,7 @@ public interface Skribbl {
     double CANVAS_H = 600.0;
 
     enum Color {
-        /*WHITE     (0xFFFFFF, 580, 770),
+        WHITE     (0xFFFFFF, 580, 770),
         GREY        (0xC1C1C1, 604, 770),
         RED         (0xEF130B, 628, 770),
         ORANGE      (0xFF7100, 652, 770),
@@ -31,10 +31,10 @@ public interface Skribbl {
         DARK_BLUE   (0x0E0865, 748, 794),
         DARK_PURPLE (0x550069, 772, 794),
         DARK_PINK   (0xA75574, 796, 794),
-        DARK_BROWN  (0x63300D, 820, 794);*/
+        DARK_BROWN  (0x63300D, 820, 794);
 
         // Alternative Paint palette
-        BLACK       (0x000000, 760, 58),
+        /*BLACK       (0x000000, 760, 58),
         GRAY        (0x7F7F7F, 782, 58),
         DARK_RED    (0x880015, 804, 58),
         RED         (0xED1C24, 826, 58),
@@ -53,7 +53,7 @@ public interface Skribbl {
         LIME_GREEN  (0xB5E61D, 892, 80),
         BABY_BLUE   (0x99D9EA, 914, 80),
         LIGHT_BLUE  (0x7092BE, 936, 80),
-        PURPLE_PINK (0xC8BFE7, 958, 80);
+        PURPLE_PINK (0xC8BFE7, 958, 80);*/
 
         private final int color;
         private final int x;
