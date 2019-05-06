@@ -4,11 +4,7 @@ import com.github.cbryant02.skribblr.util.DrawUtils;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Cursor;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
@@ -18,6 +14,9 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -78,9 +77,6 @@ public class MainController {
         FileChooser fileChooser = preloadFileChooserFuture.get();
         fileChooser.setTitle("Choose an image");
 
-        // Indicate loading
-        stage.getScene().setCursor(Cursor.WAIT);
-
         // Filter extensions to images only
         FileChooser.ExtensionFilter filter = new FileChooser.ExtensionFilter("Images", "*.png", "*.bmp", "*.jpg", "*.gif");
         fileChooser.getExtensionFilters().add(filter);
@@ -88,21 +84,17 @@ public class MainController {
         // Get image from user
         File imageFile = fileChooser.showOpenDialog(stage);
 
-        // showOpenDialog returns null if cancel was pressed. Null-check imageFile.
+        // Return if user didn't input anything or file is invalid
         if(imageFile == null || !imageFile.exists())
             return;
 
         String path = imageFile.toString();
-        Image image = new Image(new BufferedInputStream(new FileInputStream(path)));
         imagePathLabel.setText(path);
-        loadImage(image);
+        loadImage(new Image(new BufferedInputStream(new FileInputStream(path))));
 
         // Reset FileChooser future
         preloadFileChooserFuture = new FutureTask<>(FileChooser::new);
         executor.execute(preloadFileChooserFuture);
-
-        // Reset cursor
-        stage.getScene().setCursor(Cursor.DEFAULT);
 
         // Enable drawing
         drawButton.setDisable(false);
@@ -110,9 +102,32 @@ public class MainController {
 
     @FXML
     public void onLoadWebButtonPressed() {
+        // Prompt for URL
         TextInputDialog prompt = new TextInputDialog();
         prompt.setTitle("Load image from URL");
         prompt.setHeaderText("Enter a URL:");
+        Optional<String> input = prompt.showAndWait();
+
+        // Return if user didn't input anything
+        if(!input.isPresent())
+            return;
+
+        URL url;
+        try {
+            url = new URL(input.get());
+        } catch (MalformedURLException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Invalid URL");
+            alert.setContentText("The text you typed in was not a valid URL. Please try again.");
+            alert.showAndWait();
+            return;
+        }
+
+        loadImage(new Image(url.toString()));
+
+        // Enable drawing
+        drawButton.setDisable(false);
     }
 
     @FXML
