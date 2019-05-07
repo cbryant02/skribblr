@@ -8,14 +8,28 @@ import java.awt.event.InputEvent;
 /**
  * Adds some convenience methods for prettier code
  */
-class SkribblRobot extends Robot {
-    private static final long BASE_DELAY = 10L;
+public class SkribblRobot extends Robot {
+    private static final long defaultBaseDelay = 10L;
+
+    private static long baseDelay = defaultBaseDelay;
 
     private final int delayMul;
 
+
+    public static void setBaseDelay(long baseDelay) {
+        SkribblRobot.baseDelay = baseDelay;
+    }
+
+    /**
+     * Reset the base action delay to default
+     */
+    public static long getDefaultBaseDelay() {
+        return defaultBaseDelay;
+    }
+
     /**
      * Construct a new SkribblRobot with the specified {@code delayMul}.
-     * @param delayMul Multiplier for automatic delay between actions. The bot uses a delay of {@value BASE_DELAY}ms multiplied by {@code delayMul}.<br/>
+     * @param delayMul Multiplier for automatic delay between actions. The bot uses a delay of {@value baseDelay}ms multiplied by {@code delayMul}.<br/>
      *                 Slower computers and internet connections may necessitate a longer delayMul in order to reliably keep up with requests.
      * @throws IllegalArgumentException if {@code delayMul} is negative or zero
      * @throws AWTException if the platform configuration does not allow
@@ -77,6 +91,6 @@ class SkribblRobot extends Robot {
     }
 
     private void delay() throws InterruptedException {
-        Thread.sleep(BASE_DELAY * delayMul);
+        Thread.sleep(baseDelay * delayMul);
     }
 }

@@ -51,7 +51,7 @@
            </Label>
            <Button alignment="CENTER" layoutX="1008.0" mnemonicParsing="false" onAction="#onLoadFileButtonPressed" prefWidth="75.0" text="Load (File)" textAlignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="180.0" AnchorPane.topAnchor="0.0">
             <tooltip>
-               <Tooltip text="Load an image." />
+               <Tooltip text="Load an image from disk." />
             </tooltip>
             <font>
                <Font size="11.0" />
@@ -64,13 +64,13 @@
                   <Insets left="10.0" right="10.0" />
               </padding>
            </Label>
-           <TextField fx:id="imageScaleInput" layoutX="934.0" layoutY="3.0" onAction="#onTextFieldUpdate" prefWidth="60.0" promptText="100%" AnchorPane.bottomAnchor="2.0" AnchorPane.rightAnchor="270.0" AnchorPane.topAnchor="2.0">
+           <TextField fx:id="imageScaleInput" layoutX="934.0" layoutY="3.0" onAction="#onImageScaleUpdate" prefWidth="60.0" promptText="100%" AnchorPane.bottomAnchor="2.0" AnchorPane.rightAnchor="270.0" AnchorPane.topAnchor="2.0">
             <tooltip>
                <Tooltip autoHide="true" prefWidth="160.0" text="Factor to scale image by. Smaller scale = faster drawing. Less quality drop than pixel skipping. (max 100%)" width="160.0" wrapText="true" />
             </tooltip></TextField>
          <Button alignment="CENTER" layoutX="1094.0" mnemonicParsing="false" onAction="#onLoadWebButtonPressed" prefWidth="75.0" text="Load (Web)" textAlignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="90.0" AnchorPane.topAnchor="0.0">
             <tooltip>
-               <Tooltip text="Load an image." />
+               <Tooltip text="Load an image from the web." />
             </tooltip>
             <font>
                <Font size="11.0" />
@@ -86,20 +86,24 @@
    <top>
        <AnchorPane prefHeight="30.0" BorderPane.alignment="CENTER">
            <BorderPane.margin>
-               <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+               <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
            </BorderPane.margin>
-           <MenuButton fx:id="bgColorMenu" layoutX="728.0" layoutY="4.0" mnemonicParsing="false" prefWidth="120.0"
-                       text="White" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                       AnchorPane.topAnchor="0.0"/>
-           <Label alignment="CENTER_RIGHT" layoutX="632.0" layoutY="-1.0" text="Background Color"
-                  AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="150.0" AnchorPane.topAnchor="0.0">
+           <MenuButton fx:id="bgColorMenu" layoutX="728.0" layoutY="4.0" mnemonicParsing="false" prefWidth="120.0" text="White" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+           <Label alignment="CENTER_RIGHT" layoutX="632.0" layoutY="-1.0" text="Background Color" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="150.0" AnchorPane.topAnchor="0.0">
               <padding>
-                  <Insets left="10.0" right="10.0"/>
+                  <Insets left="10.0" right="10.0" />
               </padding>
            </Label>
-           <Rectangle fx:id="bgColorDisplay" arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="24.0" layoutX="721.0"
-                      layoutY="7.0" stroke="BLACK" strokeType="INSIDE" width="24.0" AnchorPane.bottomAnchor="3.0"
-                      AnchorPane.rightAnchor="125.0" AnchorPane.topAnchor="3.0"/>
+           <Rectangle fx:id="bgColorDisplay" arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="24.0" layoutX="721.0" layoutY="7.0" stroke="BLACK" strokeType="INSIDE" width="24.0" AnchorPane.bottomAnchor="3.0" AnchorPane.rightAnchor="125.0" AnchorPane.topAnchor="3.0" />
+         <TextField fx:id="drawSpeedInput" layoutX="428.0" onAction="#onDrawSpeedUpdate" prefHeight="30.0" prefWidth="90.0" promptText="10ms" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="280.0" AnchorPane.topAnchor="0.0">
+            <tooltip>
+               <Tooltip text="Delay between each drawing action. 10ms is a safe bet most of the time. (max 100ms)" />
+            </tooltip></TextField>
+         <Label alignment="CENTER_RIGHT" layoutX="401.0" text="Draw Speed" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="370.0" AnchorPane.topAnchor="0.0">
+            <padding>
+               <Insets left="10.0" right="10.0" />
+            </padding>
+         </Label>
        </AnchorPane>
    </top>
 </BorderPane>

@@ -68,7 +68,7 @@ public class DrawUtils {
             bot.mouseMove((int) Skribbl.CANVAS_X, (int) Skribbl.CANVAS_Y);
             bot.mouseClick();
             Thread.sleep(20L);
-            bot.mouseWheel(-2);
+            bot.mouseWheel(-1);
         } catch (InterruptedException ex) { return null; }
 
         return new Task<Void>() {

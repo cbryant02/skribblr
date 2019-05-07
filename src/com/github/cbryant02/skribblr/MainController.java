@@ -2,9 +2,9 @@ package com.github.cbryant02.skribblr;
 
 import com.github.cbryant02.skribblr.util.DrawUtils;
 import com.github.cbryant02.skribblr.util.Skribbl;
+import com.github.cbryant02.skribblr.util.SkribblRobot;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -35,6 +35,7 @@ public class MainController {
     @FXML private ImageView skribblImageView;
     @FXML private Label imagePathLabel;
     @FXML private TextField imageScaleInput;
+    @FXML private TextField drawSpeedInput;
     @FXML private Button drawButton;
     @FXML private MenuButton bgColorMenu;
     @FXML private Rectangle bgColorDisplay;
@@ -201,9 +202,8 @@ public class MainController {
     }
 
     @FXML
-    public void onTextFieldUpdate(ActionEvent e) {
-        TextField field = (TextField)e.getSource();
-        String input = field.getText();
+    public void onImageScaleUpdate() {
+        String input = imageScaleInput.getText();
 
         // Sanitize input string
         if(input.contains("."))
@@ -223,6 +223,28 @@ public class MainController {
             process(currentImage);
     }
 
+    @FXML
+    public void onDrawSpeedUpdate() {
+        String input = drawSpeedInput.getText();
+
+        // Sanitize input string
+        if(input.contains("ms"))
+            input = input.replaceAll("ms", "");
+
+        // Reset value to default and return if input is empty
+        if(input.isEmpty()) {
+            SkribblRobot.setBaseDelay(SkribblRobot.getDefaultBaseDelay());
+            return;
+        }
+
+        // Update value and reprocess image
+        long d = formatDrawSpeed(input);
+        if(d == -1L)
+            d = SkribblRobot.getDefaultBaseDelay();
+        SkribblRobot.setBaseDelay(d);
+        drawSpeedInput.setText(d + "ms");
+    }
+
     // Handles NumberFormatExceptions and bound checking for imageScale
     private int formatImageScale(String s) {
         int r;
@@ -233,6 +255,19 @@ public class MainController {
         }
         if(r > 100 || r < 0)
             return imageScale;
+        return r;
+    }
+
+    // Handles NumberFormatExceptions and bound checking for draw speed
+    private long formatDrawSpeed(String s) {
+        long r;
+        try {
+            r = Long.valueOf(s);
+        } catch (NumberFormatException ex) {
+            return -1L;
+        }
+        if(r > 100) return 100L;
+        if(r < 1) return 1L;
         return r;
     }
 }
