@@ -64,11 +64,11 @@ public class DrawUtils {
 
             // Set brush size
             Thread.sleep(20L);
+            bot.select(Skribbl.Tool.BRUSH_SMALL);
             bot.mouseMove((int) Skribbl.CANVAS_X, (int) Skribbl.CANVAS_Y);
             bot.mouseClick();
-            bot.mouseWheel(6);
             Thread.sleep(20L);
-            bot.mouseWheel(-1);
+            bot.mouseWheel(-2);
         } catch (InterruptedException ex) { return null; }
 
         return new Task<Void>() {
@@ -103,7 +103,10 @@ public class DrawUtils {
                             // Draw color on screen
                             bot.mouseMove((int) ((x * scale) + Skribbl.CANVAS_X), (int) ((y * scale) + Skribbl.CANVAS_Y));
                             bot.mouseClick();
-                        } catch (Exception ex) { return null; }
+                        } catch (Exception ex) {
+                            updateProgress(1,1);
+                            return null;
+                        }
                     }
                 }
 

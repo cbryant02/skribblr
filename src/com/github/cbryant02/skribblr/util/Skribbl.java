@@ -100,11 +100,11 @@ public interface Skribbl {
 
     enum Tool {
         PENCIL(870, 780),
-        ERASER(918, 780),
-        BUCKET(966, 780);
+        BUCKET(966, 780),
+        BRUSH_SMALL(1034, 780);
 
         /*PENCIL(336, 69),
-        ERASER(246, 97),
+        BRUSH_SMALL(-1,-1),
         BUCKET(269, 71);*/
 
         private final int x;
