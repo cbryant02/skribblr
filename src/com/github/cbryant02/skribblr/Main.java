@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
@@ -20,6 +21,7 @@ import java.util.logging.Logger;
 public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
+        System.exit(0);
     }
 
     @Override
@@ -35,16 +37,18 @@ public class Main extends Application {
         stage.setResizable(false);
         stage.show();
 
+        // Move stage out of the way
+        stage.setX(Screen.getPrimary().getBounds().getWidth() - stage.getWidth() - 10);
+        stage.setY(Screen.getPrimary().getBounds().getHeight() - stage.getHeight() - 50);
+
         // Disable JNativeHook logger because it nukes stdout from orbit
         Logger jnhLogger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
         jnhLogger.setLevel(Level.OFF);
         jnhLogger.setUseParentHandlers(false);
 
-        // Add ESC listener
+        // Add F1 listener
         GlobalScreen.registerNativeHook();
         GlobalScreen.addNativeKeyListener(new HaltListener());
-
-
     }
 
     private class HaltListener implements NativeKeyListener {
@@ -53,7 +57,7 @@ public class Main extends Application {
 
         @Override
         public void nativeKeyPressed(NativeKeyEvent nativeKeyEvent) {
-            if(nativeKeyEvent.getKeyCode() == NativeKeyEvent.VC_ESCAPE) {
+            if(nativeKeyEvent.getKeyCode() == NativeKeyEvent.VC_F1) {
                 try {
                     GlobalScreen.unregisterNativeHook();
                 } catch (NativeHookException e) { e.printStackTrace(); }

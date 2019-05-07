@@ -7,6 +7,7 @@ import javafx.scene.image.Image;
 
 import java.awt.AWTException;
 import java.awt.Color;
+import java.awt.event.KeyEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -14,6 +15,7 @@ import java.awt.image.WritableRaster;
 
 public class DrawUtils {
     private static final KdTree<ColorPoint> tree;
+    private static Skribbl.Color bgColor = Skribbl.Color.WHITE;
 
     static {
         tree = new KdTree<>();
@@ -33,11 +35,45 @@ public class DrawUtils {
      * @return Drawing task, for tracking progress only. No result.
      */
     private static Task<Void> draw(final BufferedImage image) {
+        final SkribblRobot bot;
+        try {
+            bot = new SkribblRobot();
+        } catch (AWTException ignore) {
+            return null;
+        }
+
+        try {
+            // Enter fullscreen if not in fullscreen/using skribbl palette
+            Thread.sleep(20L);
+            if (Skribbl.Color.values()[0].getRGB() != 0) {
+                if (bot.getPixelColor(312, 32).getRGB() != 0xFFE80920) {
+                    bot.mouseMove(610, 200);
+                    bot.mouseClick();
+                    bot.keyStroke(KeyEvent.VK_F11);
+                    Thread.sleep(1500L);
+                }
+            }
+
+            // Fill background
+            Thread.sleep(20L);
+            bot.select(Skribbl.Tool.BUCKET);
+            bot.select(bgColor);
+            bot.mouseMove((int) Skribbl.CANVAS_X, (int) Skribbl.CANVAS_Y);
+            bot.mouseClick();
+            bot.select(Skribbl.Tool.PENCIL);
+
+            // Set brush size
+            Thread.sleep(20L);
+            bot.mouseMove((int) Skribbl.CANVAS_X, (int) Skribbl.CANVAS_Y);
+            bot.mouseClick();
+            bot.mouseWheel(6);
+            Thread.sleep(20L);
+            bot.mouseWheel(-1);
+        } catch (InterruptedException ex) { return null; }
+
         return new Task<Void>() {
             @Override
-            protected Void call() throws AWTException {
-                SkribblRobot bot = new SkribblRobot();
-
+            protected Void call() {
                 /* We want to draw as large as possible, so let's "scale" the image back up to the canvas size
                  * This is achieved simply by multiplying the position of each pixel by the scaling factor that would
                  * make it match the canvas dimensions */
@@ -47,26 +83,30 @@ public class DrawUtils {
 
                 int progress = 0;
                 int max = image.getWidth() * image.getHeight();
+
                 for (int y = 0; y < image.getHeight(); y++) {
-                    if(y > Skribbl.CANVAS_H)
+                    if (y > Skribbl.CANVAS_H)
                         break;
 
                     for (int x = 0; x < image.getWidth(); x++) {
-                        updateProgress(++progress, max);
-                        Skribbl.Color pixel = Skribbl.Color.valueOf(new Color(image.getRGB(x, y)));
+                        try {
+                            updateProgress(++progress, max);
+                            Skribbl.Color pixel = Skribbl.Color.valueOf(new Color(image.getRGB(x, y)));
 
-                        // Skip background color / transparent pixels
-                        if (new Color(image.getRGB(x, y), true).getAlpha() < 255 || pixel == Skribbl.Color.WHITE)
-                            continue;
+                            // Skip background color / transparent pixels
+                            if (new Color(image.getRGB(x, y), true).getAlpha() < 255 || pixel == bgColor)
+                                continue;
 
-                        // Select color from palette
-                        bot.select(pixel);
+                            // Select color from palette
+                            bot.select(pixel);
 
-                        // Draw color on screen
-                        bot.mouseMove((int)((x * scale) + Skribbl.CANVAS_X), (int)((y * scale) + Skribbl.CANVAS_Y));
-                        bot.mouseClick();
+                            // Draw color on screen
+                            bot.mouseMove((int) ((x * scale) + Skribbl.CANVAS_X), (int) ((y * scale) + Skribbl.CANVAS_Y));
+                            bot.mouseClick();
+                        } catch (Exception ex) { return null; }
                     }
                 }
+
                 return null;
             }
         };
@@ -129,6 +169,10 @@ public class DrawUtils {
         AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
 
         return op.filter(image, clone);
+    }
+
+    public static void setBgColor(Skribbl.Color bgColor) {
+        DrawUtils.bgColor = bgColor;
     }
 
     /**

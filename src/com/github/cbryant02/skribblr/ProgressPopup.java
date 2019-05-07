@@ -40,7 +40,7 @@ class ProgressPopup {
         ProgressController controller = loader.getController();
 
         // Position stage in top right corner
-        stage.setX(screenBounds.getWidth() - stage.getWidth() - 10);
+        stage.setX(screenBounds.getWidth() - 320);
         stage.setY(10);
 
         // Bind task progress to bar and set initial progress text

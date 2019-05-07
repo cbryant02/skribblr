@@ -9,7 +9,7 @@ import java.awt.event.InputEvent;
  * Adds some convenience methods for prettier code
  */
 class SkribblRobot extends Robot {
-    private static final long BASE_DELAY = 3L;
+    private static final long BASE_DELAY = 10L;
 
     private final int delayMul;
 
@@ -42,19 +42,26 @@ class SkribblRobot extends Robot {
     /**
      * Press and release mouse with a delay.
      */
-    void mouseClick() {
+    void mouseClick() throws InterruptedException {
         super.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         delay();
         super.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    }
+
+    void keyStroke(int keycode) throws InterruptedException {
+        super.keyPress(keycode);
+        delay();
+        super.keyRelease(keycode);
     }
 
     /**
      * Select a palette color.
      * @param color Color to select
      */
-    void select(Skribbl.Color color) {
+    void select(Skribbl.Color color) throws InterruptedException {
         super.mouseMove(color.getX(), color.getY());
         delay();
+        mouseClick();
         mouseClick();
     }
 
@@ -62,15 +69,14 @@ class SkribblRobot extends Robot {
      * Select a tool.
      * @param tool Tool to select
      */
-    public void select(Skribbl.Tool tool) {
+    void select(Skribbl.Tool tool) throws InterruptedException {
         super.mouseMove(tool.getX(), tool.getY());
         delay();
         mouseClick();
+        mouseClick();
     }
 
-    private void delay() {
-        try {
-            Thread.sleep(BASE_DELAY * delayMul);
-        } catch (InterruptedException e) { e.printStackTrace(); }
+    private void delay() throws InterruptedException {
+        Thread.sleep(BASE_DELAY * delayMul);
     }
 }

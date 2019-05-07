@@ -1,14 +1,21 @@
 package com.github.cbryant02.skribblr;
 
 import com.github.cbryant02.skribblr.util.DrawUtils;
+import com.github.cbryant02.skribblr.util.Skribbl;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.keyboard.NativeKeyEvent;
+import org.jnativehook.keyboard.NativeKeyListener;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -29,6 +36,8 @@ public class MainController {
     @FXML private Label imagePathLabel;
     @FXML private TextField imageScaleInput;
     @FXML private Button drawButton;
+    @FXML private MenuButton bgColorMenu;
+    @FXML private Rectangle bgColorDisplay;
 
     private final Stage stage;
     private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -55,6 +64,24 @@ public class MainController {
 
         // Default image scale and pixel skipping values
         imageScale = IMAGE_SCALE_DEFAULT;
+
+        // Set up background color picker
+        for(Skribbl.Color color : Skribbl.Color.values()) {
+            HBox box = new HBox();
+            CustomMenuItem item = new CustomMenuItem(box);
+
+            box.setSpacing(5);
+            box.getChildren().add(new Rectangle(15, 15, color.getFxColor()));
+            box.getChildren().add(new Label(color.toString()));
+
+            item.setOnAction(event -> {
+                bgColorMenu.setText(color.toString());
+                bgColorDisplay.setFill(color.getFxColor());
+                DrawUtils.setBgColor(color);
+            });
+
+            bgColorMenu.getItems().add(item);
+        }
     }
 
     private void loadImage(Image image) {
@@ -132,9 +159,12 @@ public class MainController {
 
     @FXML
     public void onDrawButtonPressed() {
-        drawButton.setDisable(true);                                    // Disable draw button while drawing
+        drawButton.setDisable(true);                                            // Disable draw button while drawing
         Task<Void> drawTask = DrawUtils.draw(currentImageConverted);
         executor.execute(drawTask);
+
+        // Move window out of the way
+        stage.setIconified(true);
 
         // Open progress indicator
         ProgressPopup p = new ProgressPopup("Drawing...", drawTask);
@@ -142,9 +172,31 @@ public class MainController {
 
         // Enable draw button again and close progress window when finished
         drawTask.setOnSucceeded(event -> {
-            drawButton.setDisable(false);
             event.consume();
             p.close();
+            drawButton.setDisable(false);
+            stage.setIconified(false);
+        });
+
+        // Cancel draw task if ESC is pressed
+        GlobalScreen.addNativeKeyListener(new NativeKeyListener() {
+            @Override
+            public void nativeKeyTyped(NativeKeyEvent nativeKeyEvent) {}
+
+            @Override
+            public void nativeKeyPressed(NativeKeyEvent nativeKeyEvent) {
+                if (nativeKeyEvent.getKeyCode() == NativeKeyEvent.VC_ESCAPE) {
+                    Platform.runLater(() -> {
+                        drawTask.cancel(true);
+                        p.close();
+                        drawButton.setDisable(false);
+                        stage.setIconified(false);
+                    });
+                }
+            }
+
+            @Override
+            public void nativeKeyReleased(NativeKeyEvent nativeKeyEvent) {}
         });
     }
 
@@ -164,7 +216,7 @@ public class MainController {
             return;
         }
 
-        // Update value and reproces image
+        // Update value and reprocess image
         imageScale = formatImageScale(input);
         imageScaleInput.setText(imageScale + "%");
         if(currentImageConverted != null)

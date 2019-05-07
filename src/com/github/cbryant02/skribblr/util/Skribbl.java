@@ -10,7 +10,7 @@ public interface Skribbl {
     double CANVAS_H = 600.0;
 
     enum Color {
-        WHITE     (0xFFFFFF, 580, 770),
+        WHITE       (0xFFFFFF, 580, 770),
         GREY        (0xC1C1C1, 604, 770),
         RED         (0xEF130B, 628, 770),
         ORANGE      (0xFF7100, 652, 770),
@@ -47,7 +47,7 @@ public interface Skribbl {
         WHITE       (0xFFFFFF, 760, 80),
         LIGHT_GRAY  (0xC3C3C3, 782, 80),
         LIGHT_BROWN (0xB97A57, 804, 80),
-        PINK        (0xFFAEC9, 826,  80),
+        PINK        (0xFFAEC9, 826, 80),
         CANARY      (0xFFC90E, 848, 80),
         OFF_WHITE   (0xEFE4B0, 870, 80),
         LIME_GREEN  (0xB5E61D, 892, 80),
@@ -69,6 +69,15 @@ public interface Skribbl {
             return new java.awt.Color(color);
         }
 
+        public javafx.scene.paint.Color getFxColor() {
+            java.awt.Color awtColor = getColor();
+            return new javafx.scene.paint.Color(awtColor.getRed()/255.0, awtColor.getGreen()/255.0, awtColor.getBlue()/255.0, 1);
+        }
+
+        public int getRGB() {
+            return color;
+        }
+
         public int getX() {
             return x;
         }
@@ -82,18 +91,28 @@ public interface Skribbl {
                 if(pcolor.getColor().equals(color)) return pcolor;
             return null;
         }
+
+        @Override
+        public String toString() {
+            return this.name().charAt(0) + this.name().substring(1).toLowerCase();
+        }
     }
 
     enum Tool {
-        PENCIL(870),
-        ERASER(918),
-        BUCKET(966);
+        PENCIL(870, 780),
+        ERASER(918, 780),
+        BUCKET(966, 780);
+
+        /*PENCIL(336, 69),
+        ERASER(246, 97),
+        BUCKET(269, 71);*/
 
         private final int x;
-        private static final int POS_Y = 780;
+        private final int y;
 
-        Tool(int x) {
+        Tool(int x, int y) {
             this.x = x;
+            this.y = y;
         }
 
         public int getX() {
@@ -101,7 +120,7 @@ public interface Skribbl {
         }
 
         public int getY() {
-            return POS_Y;
+            return y;
         }
     }
 }
