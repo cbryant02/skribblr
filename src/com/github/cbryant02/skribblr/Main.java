@@ -19,7 +19,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Main extends Application {
+    private static String apiKey;
+    private static String engineId;
+    private static boolean enableSearch = true;
+
     public static void main(String[] args) {
+        if(args.length > 0 && args[0].equals("nosearch"))
+            enableSearch = false;
+
+        if(args.length < 2 || !enableSearch) {
+            System.out.println("Please provide a Google Search API key and search engine ID or pass \"nosearch\" as the first argument.");
+            System.exit(-1);
+        }
+
+        apiKey = args[0];
+        engineId = args[1];
+
         launch(args);
         System.exit(0);
     }
@@ -49,6 +64,18 @@ public class Main extends Application {
         // Add F1 listener
         GlobalScreen.registerNativeHook();
         GlobalScreen.addNativeKeyListener(new HaltListener());
+    }
+
+    public static String getApiKey() {
+        return apiKey;
+    }
+
+    public static String getEngineId() {
+        return engineId;
+    }
+
+    public static boolean isSearchEnabled() {
+        return enableSearch;
     }
 
     private class HaltListener implements NativeKeyListener {

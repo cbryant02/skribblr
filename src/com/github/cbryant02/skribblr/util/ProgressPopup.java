@@ -1,4 +1,4 @@
-package com.github.cbryant02.skribblr;
+package com.github.cbryant02.skribblr.util;
 
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -13,15 +13,25 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-class ProgressPopup {
+/**
+ * A simple popup with a Task-tracking progress bar.
+ */
+public class ProgressPopup {
+    @FXML private Label titleLabel;
+    @FXML private ProgressBar progressBar;
     private final Stage stage;
 
-    ProgressPopup(String message, Task task) {
+    /**
+     * Construct a new ProgressPopup.
+     * @param message Message to display (i.e. task description)
+     * @param task Task to track
+     */
+    public ProgressPopup(String message, Task task) {
         Rectangle2D screenBounds = Screen.getPrimary().getBounds();
 
         // Load layout
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("fxml/progress.fxml"));
-        loader.setController(new ProgressController());
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("../fxml/progress.fxml"));
+        loader.setController(this);
         try {
             loader.load();
         } catch (IOException e) {
@@ -36,27 +46,28 @@ class ProgressPopup {
         stage.setResizable(false);
         stage.setAlwaysOnTop(true);
 
-        // Get layout controller
-        ProgressController controller = loader.getController();
-
         // Position stage in top right corner
-        stage.setX(screenBounds.getWidth() - 320);
+        stage.setX(screenBounds.getWidth() - root.prefWidth(-1) - 20);
         stage.setY(10);
 
         // Bind task progress to bar and set initial progress text
-        controller.progressBar.progressProperty().bind(task.progressProperty());
+        progressBar.progressProperty().bind(task.progressProperty());
+
+        // Change the title to the message
+        titleLabel.setText(message);
     }
 
-    void show() {
+    /**
+     * Show this ProgressPopup.
+     */
+    public void show() {
         stage.show();
     }
 
-    void close() {
+    /**
+     * Close this ProgressPopup.
+     */
+    public void close() {
         stage.close();
-    }
-
-    private class ProgressController {
-        @FXML private Label progressLabel;
-        @FXML private ProgressBar progressBar;
     }
 }

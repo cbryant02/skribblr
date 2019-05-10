@@ -1,7 +1,7 @@
 package com.github.cbryant02.skribblr.util;
 
 /**
- * Defines enums for color/tool positions.
+ * Defines enums for colors/tools and provides their positions on the screen
  */
 public interface Skribbl {
     double CANVAS_X = 500.0;
@@ -104,7 +104,7 @@ public interface Skribbl {
         BRUSH_SMALL(1034, 780);
 
         /*PENCIL(336, 69),
-        BRUSH_SMALL(-1,-1),
+        BRUSH_SMALL(0,0),
         BUCKET(269, 71);*/
 
         private final int x;

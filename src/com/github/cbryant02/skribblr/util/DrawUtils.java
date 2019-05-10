@@ -13,6 +13,9 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 
+/**
+ * Static utility methods for image processing and drawing
+ */
 public class DrawUtils {
     private static final KdTree<ColorPoint> tree;
     private static Skribbl.Color bgColor = Skribbl.Color.WHITE;
@@ -25,55 +28,57 @@ public class DrawUtils {
             tree.add(new ColorPoint(color.getColor()));
     }
 
+    /**
+     * Draw an image
+     * @param image Image to draw
+     * @return Drawing task, for tracking progress only. No result.
+     */
     public static Task<Void> draw(final Image image) {
         return draw(SwingFXUtils.fromFXImage(image, null));
     }
 
     /**
      * Draw an image.
-     * @param image Image to draw
+     * @param image BufferedImage to draw
      * @return Drawing task, for tracking progress only. No result.
      */
     private static Task<Void> draw(final BufferedImage image) {
         final SkribblRobot bot;
         try {
             bot = new SkribblRobot();
-        } catch (AWTException ignore) {
-            return null;
-        }
-
-        try {
-            // Enter fullscreen if not in fullscreen/using skribbl palette
-            Thread.sleep(20L);
-            if (Skribbl.Color.values()[0].getRGB() != 0) {
-                if (bot.getPixelColor(312, 32).getRGB() != 0xFFE80920) {
-                    bot.mouseMove(610, 200);
-                    bot.mouseClick();
-                    bot.keyStroke(KeyEvent.VK_F11);
-                    Thread.sleep(1500L);
-                }
-            }
-
-            // Fill background
-            Thread.sleep(20L);
-            bot.select(Skribbl.Tool.BUCKET);
-            bot.select(bgColor);
-            bot.mouseMove((int) Skribbl.CANVAS_X, (int) Skribbl.CANVAS_Y);
-            bot.mouseClick();
-            bot.select(Skribbl.Tool.PENCIL);
-
-            // Set brush size
-            Thread.sleep(20L);
-            bot.select(Skribbl.Tool.BRUSH_SMALL);
-            bot.mouseMove((int) Skribbl.CANVAS_X, (int) Skribbl.CANVAS_Y);
-            bot.mouseClick();
-            Thread.sleep(20L);
-            bot.mouseWheel(-1);
-        } catch (InterruptedException ex) { return null; }
+        } catch (AWTException ignore) { return null; }
 
         return new Task<Void>() {
             @Override
             protected Void call() {
+                try {
+                    // Enter fullscreen if not in fullscreen/using skribbl palette
+                    if (Skribbl.Color.values()[0].getRGB() != 0) {
+                        if (bot.getPixelColor(312, 32).getRGB() != 0xFFE80920) {
+                            bot.mouseMove(610, 200);
+                            bot.mouseClick();
+                            bot.keyStroke(KeyEvent.VK_F11);
+                            Thread.sleep(1500L);
+                        }
+                    }
+
+                    // Fill background
+                    Thread.sleep(20L);
+                    bot.select(Skribbl.Tool.BUCKET);
+                    bot.select(bgColor);
+                    bot.mouseMove((int) Skribbl.CANVAS_X, (int) Skribbl.CANVAS_Y);
+                    bot.mouseClick();
+                    bot.select(Skribbl.Tool.PENCIL);
+
+                    // Set brush size
+                    Thread.sleep(20L);
+                    bot.select(Skribbl.Tool.BRUSH_SMALL);
+                    bot.mouseMove((int) Skribbl.CANVAS_X, (int) Skribbl.CANVAS_Y);
+                    bot.mouseClick();
+                    Thread.sleep(20L);
+                    bot.mouseWheel(-1);
+                } catch (InterruptedException ex) { return null; }
+
                 /* We want to draw as large as possible, so let's "scale" the image back up to the canvas size
                  * This is achieved simply by multiplying the position of each pixel by the scaling factor that would
                  * make it match the canvas dimensions */
@@ -174,29 +179,11 @@ public class DrawUtils {
         return op.filter(image, clone);
     }
 
+    /**
+     * Set the current background color.
+     * @param bgColor New background color
+     */
     public static void setBgColor(Skribbl.Color bgColor) {
         DrawUtils.bgColor = bgColor;
-    }
-
-    /**
-     * Split a 24-bit color integer into bytes
-     * @param bits Original 24-bit color integer
-     * @return RGB bytes
-     */
-    private static int[] splitColor(int bits) {
-        int[] rgb = new int[3];
-
-        // Mask bits
-        rgb[0] = ((bits & 0xFF0000) >> 16);
-        rgb[1] = ((bits & 0x00FF00) >> 8);
-        rgb[2] =  (bits & 0x0000FF);
-
-        return rgb;
-    }
-
-    private static int[] add(int[] a, double b) {
-        for(int i = 0; i < a.length; i++)
-            a[i] += b;
-        return a;
     }
 }

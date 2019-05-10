@@ -12,7 +12,7 @@
     <center>
         <SplitPane dividerPositions="0.5" prefHeight="160.0" prefWidth="200.0" BorderPane.alignment="CENTER">
             <AnchorPane minHeight="0.0" minWidth="0.0">
-                <Label alignment="CENTER" layoutY="210.0" prefHeight="43.0" prefWidth="434.0" text="No image" textAlignment="CENTER" textFill="#acacac" AnchorPane.bottomAnchor="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="200.0">
+                <Label fx:id="originalNoImageLabel" alignment="CENTER" layoutY="210.0" prefHeight="43.0" prefWidth="434.0" text="No image" textAlignment="CENTER" textFill="#acacac" AnchorPane.bottomAnchor="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="200.0">
                     <font>
                         <Font size="14.0" />
                     </font>
@@ -25,7 +25,7 @@
             <ImageView fx:id="originalImageView" fitHeight="380.0" fitWidth="394.0" layoutX="117.0" layoutY="157.0" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="48.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0" />
             </AnchorPane>
             <AnchorPane minHeight="0.0" minWidth="0.0">
-            <Label alignment="CENTER" prefWidth="0.0" text="No image" textAlignment="CENTER" textFill="#acacac" AnchorPane.bottomAnchor="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="200.0">
+            <Label fx:id="skribblNoImageLabel" alignment="CENTER" prefWidth="0.0" text="No image" textAlignment="CENTER" textFill="#acacac" AnchorPane.bottomAnchor="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="200.0">
                <font>
                   <Font size="14.0" />
                </font>

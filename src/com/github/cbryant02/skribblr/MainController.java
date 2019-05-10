@@ -1,6 +1,7 @@
 package com.github.cbryant02.skribblr;
 
 import com.github.cbryant02.skribblr.util.DrawUtils;
+import com.github.cbryant02.skribblr.util.ProgressPopup;
 import com.github.cbryant02.skribblr.util.Skribbl;
 import com.github.cbryant02.skribblr.util.SkribblRobot;
 import javafx.application.Platform;
@@ -17,10 +18,7 @@ import org.jnativehook.GlobalScreen;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Optional;
@@ -29,16 +27,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
-
+/**
+ * Main layout controller. Handles most frontend application logic.
+ */
 public class MainController {
-    @FXML private ImageView originalImageView;
-    @FXML private ImageView skribblImageView;
-    @FXML private Label imagePathLabel;
-    @FXML private TextField imageScaleInput;
-    @FXML private TextField drawSpeedInput;
-    @FXML private Button drawButton;
+    @FXML private ImageView  originalImageView;
+    @FXML private ImageView  skribblImageView;
+    @FXML private TextField  imageScaleInput;
+    @FXML private TextField  drawSpeedInput;
+    @FXML private Label      imagePathLabel;
+    @FXML private Label      originalNoImageLabel;
+    @FXML private Label      skribblNoImageLabel;
+    @FXML private Button     drawButton;
     @FXML private MenuButton bgColorMenu;
-    @FXML private Rectangle bgColorDisplay;
+    @FXML private Rectangle  bgColorDisplay;
 
     private final Stage stage;
     private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -85,14 +87,26 @@ public class MainController {
         }
     }
 
-    private void loadImage(Image image) {
+    /**
+     * Load, display, and process an image.
+     * @param path Path to image
+     */
+    private void loadImage(String path) {
+        Image image = new Image(path);
         originalImageView.setImage(image);
         currentImage = image;
-
         process(image);
+
+        imagePathLabel.setText(path);
+        originalNoImageLabel.setVisible(false);
+        skribblNoImageLabel.setVisible(false);
+        drawButton.setDisable(false);
     }
 
-    // Process and display 'skribblified' image
+    /**
+     * Process and display an image.
+     * @param image Image to process
+     */
     private void process(Image image) {
         Image converted = DrawUtils.skribblify(image);
         converted = DrawUtils.scaleImage(converted, imageScale/100.0);
@@ -101,7 +115,7 @@ public class MainController {
     }
 
     @FXML
-    public void onLoadFileButtonPressed() throws ExecutionException, InterruptedException, FileNotFoundException {
+    public void onLoadFileButtonPressed() throws ExecutionException, InterruptedException {
         FileChooser fileChooser = preloadFileChooserFuture.get();
         fileChooser.setTitle("Choose an image");
 
@@ -116,16 +130,12 @@ public class MainController {
         if(imageFile == null || !imageFile.exists())
             return;
 
-        String path = imageFile.toString();
-        imagePathLabel.setText(path);
-        loadImage(new Image(new BufferedInputStream(new FileInputStream(path))));
+        // Load image
+        loadImage(imageFile.getAbsolutePath());
 
         // Reset FileChooser future
         preloadFileChooserFuture = new FutureTask<>(FileChooser::new);
         executor.execute(preloadFileChooserFuture);
-
-        // Enable drawing
-        drawButton.setDisable(false);
     }
 
     @FXML
@@ -140,6 +150,7 @@ public class MainController {
         if(!input.isPresent())
             return;
 
+        //
         URL url;
         try {
             url = new URL(input.get());
@@ -152,24 +163,27 @@ public class MainController {
             return;
         }
 
-        loadImage(new Image(url.toString()));
-
-        // Enable drawing
-        drawButton.setDisable(false);
+        // Load image
+        loadImage(url.toString());
     }
 
     @FXML
     public void onDrawButtonPressed() {
-        drawButton.setDisable(true);                                            // Disable draw button while drawing
-        Task<Void> drawTask = DrawUtils.draw(currentImageConverted);
-        executor.execute(drawTask);
+        // Disable draw button while drawing
+        drawButton.setDisable(true);
 
         // Move window out of the way
         stage.setIconified(true);
 
+        // Get draw task
+        Task<Void> drawTask = DrawUtils.draw(currentImageConverted);
+
         // Open progress indicator
         ProgressPopup p = new ProgressPopup("Drawing...", drawTask);
         p.show();
+
+        // Start drawing
+        executor.execute(drawTask);
 
         // Enable draw button again and close progress window when finished
         drawTask.setOnSucceeded(event -> {
@@ -180,6 +194,7 @@ public class MainController {
         });
 
         // Cancel draw task if ESC is pressed
+        // This is JNativeHook's fault, not mine, I swear
         GlobalScreen.addNativeKeyListener(new NativeKeyListener() {
             @Override
             public void nativeKeyTyped(NativeKeyEvent nativeKeyEvent) {}
@@ -233,19 +248,23 @@ public class MainController {
 
         // Reset value to default and return if input is empty
         if(input.isEmpty()) {
-            SkribblRobot.setBaseDelay(SkribblRobot.getDefaultBaseDelay());
+            SkribblRobot.setDelay(SkribblRobot.getDefaultDelay());
             return;
         }
 
         // Update value and reprocess image
-        long d = formatDrawSpeed(input);
+        long d = formatDrawDelay(input);
         if(d == -1L)
-            d = SkribblRobot.getDefaultBaseDelay();
-        SkribblRobot.setBaseDelay(d);
+            d = SkribblRobot.getDefaultDelay();
+        SkribblRobot.setDelay(d);
         drawSpeedInput.setText(d + "ms");
     }
 
-    // Handles NumberFormatExceptions and bound checking for imageScale
+    /**
+     * Handles number formatting for imageScale
+     * @param s Input string
+     * @return Formatted/bound-checked number
+     */
     private int formatImageScale(String s) {
         int r;
         try {
@@ -258,8 +277,12 @@ public class MainController {
         return r;
     }
 
-    // Handles NumberFormatExceptions and bound checking for draw speed
-    private long formatDrawSpeed(String s) {
+    /**
+     * Handles number formatting for draw delay
+     * @param s Input string
+     * @return Formatted/bound-checked number
+     */
+    private long formatDrawDelay(String s) {
         long r;
         try {
             r = Long.valueOf(s);

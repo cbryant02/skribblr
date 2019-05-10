@@ -4,6 +4,9 @@ import com.jwetherell.algorithms.datastructures.KdTree;
 
 import java.awt.Color;
 
+/**
+ * KdTree point that represents an RGB color value
+ */
 class ColorPoint extends KdTree.XYZPoint {
     private Color color;
 
