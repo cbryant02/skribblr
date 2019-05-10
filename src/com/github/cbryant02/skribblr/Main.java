@@ -1,5 +1,11 @@
 package com.github.cbryant02.skribblr;
 
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.event.InputEvent;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -11,13 +17,6 @@ import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
-import java.awt.AWTException;
-import java.awt.Robot;
-import java.awt.event.InputEvent;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public class Main extends Application {
     private static String apiKey;
     private static String engineId;
@@ -27,13 +26,15 @@ public class Main extends Application {
         if(args.length > 0 && args[0].equals("nosearch"))
             enableSearch = false;
 
-        if(args.length < 2 || !enableSearch) {
-            System.out.println("Please provide a Google Search API key and search engine ID or pass \"nosearch\" as the first argument.");
-            System.exit(-1);
-        }
+        if(enableSearch) {
+            if(args.length > 2) {
+                System.out.println("Please provide a Google Search API key and search engine ID or pass \"nosearch\" as the first argument.");
+                System.exit(-1);
+            }
 
-        apiKey = args[0];
-        engineId = args[1];
+            apiKey = args[0];
+            engineId = args[1];
+        }
 
         launch(args);
         System.exit(0);

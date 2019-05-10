@@ -4,21 +4,8 @@ import com.github.cbryant02.skribblr.util.DrawUtils;
 import com.github.cbryant02.skribblr.util.ProgressPopup;
 import com.github.cbryant02.skribblr.util.Skribbl;
 import com.github.cbryant02.skribblr.util.SkribblRobot;
-import javafx.application.Platform;
-import javafx.concurrent.Task;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.shape.Rectangle;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-import org.jnativehook.GlobalScreen;
-import org.jnativehook.keyboard.NativeKeyEvent;
-import org.jnativehook.keyboard.NativeKeyListener;
-
-import java.io.File;
+import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Optional;
@@ -26,6 +13,21 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.keyboard.NativeKeyEvent;
+import org.jnativehook.keyboard.NativeKeyListener;
 
 /**
  * Main layout controller. Handles most frontend application logic.
@@ -90,16 +92,44 @@ public class MainController {
     /**
      * Load, display, and process an image.
      * @param path Path to image
+     * @param local True if this is a file on the local disk, false if otherwise
      */
-    private void loadImage(String path) {
-        Image image = new Image(path);
+    private void loadImage(String path, boolean local) throws IOException {
+        Image image = null;
+
+        // Need to load images differently based on file location (web/local)
+        // We also fake our user agent if loading from the web because a lot of sites are stingy about it for no reason
+        if (local) {
+            image = new Image(new BufferedInputStream(new FileInputStream(path)));
+        } else {
+            HttpURLConnection c = (HttpURLConnection) new URL(path).openConnection();
+            c.setRequestProperty("User-Agent", String.format("Apache-HttpClient/9.9.9 (Java/9.9.9_199)"));
+            image = new Image(c.getInputStream());
+        }
+
+        // Show an exception dialog if the image ran into an error when loading
+        // Usually this is just a 403
+        Exception ex = image.getException();
+        if(ex != null) {
+            String message = "We ran into an error when getting that image from the server.\n" +
+                             "Try again or try another image.";
+            createExceptionAlert(message, ex).showAndWait();
+            return;
+        }
+
+        // Update original view and process image for converted view
         originalImageView.setImage(image);
         currentImage = image;
         process(image);
 
+        // Update image path
         imagePathLabel.setText(path);
+
+        // Hide "no image" labels
         originalNoImageLabel.setVisible(false);
         skribblNoImageLabel.setVisible(false);
+
+        // Enable draw button
         drawButton.setDisable(false);
     }
 
@@ -115,7 +145,7 @@ public class MainController {
     }
 
     @FXML
-    public void onLoadFileButtonPressed() throws ExecutionException, InterruptedException {
+    public void onLoadFileButtonPressed() throws ExecutionException, InterruptedException, IOException {
         FileChooser fileChooser = preloadFileChooserFuture.get();
         fileChooser.setTitle("Choose an image");
 
@@ -131,7 +161,7 @@ public class MainController {
             return;
 
         // Load image
-        loadImage(imageFile.getAbsolutePath());
+        loadImage(imageFile.getAbsolutePath(), true);
 
         // Reset FileChooser future
         preloadFileChooserFuture = new FutureTask<>(FileChooser::new);
@@ -139,7 +169,7 @@ public class MainController {
     }
 
     @FXML
-    public void onLoadWebButtonPressed() {
+    public void onLoadWebButtonPressed() throws IOException {
         // Prompt for URL
         TextInputDialog prompt = new TextInputDialog();
         prompt.setTitle("Load image from URL");
@@ -164,7 +194,7 @@ public class MainController {
         }
 
         // Load image
-        loadImage(url.toString());
+        loadImage(url.toString(), false);
     }
 
     @FXML
@@ -292,5 +322,35 @@ public class MainController {
         if(r > 100) return 100L;
         if(r < 1) return 1L;
         return r;
+    }
+
+    private Alert createExceptionAlert(String message, Exception ex) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText("Oops!");
+        alert.setContentText(message);
+
+        StringWriter t = new StringWriter();
+        ex.printStackTrace(new PrintWriter(t));
+        String stackTrace = t.toString();
+
+        Label label = new Label("Stack trace:");
+
+        TextArea traceTextArea = new TextArea(stackTrace);
+        traceTextArea.setEditable(false);
+        traceTextArea.setWrapText(false);
+        traceTextArea.setMaxWidth(Double.MAX_VALUE);
+        traceTextArea.setMaxHeight(Double.MAX_VALUE);
+
+        GridPane.setVgrow(traceTextArea, Priority.ALWAYS);
+        GridPane.setHgrow(traceTextArea, Priority.ALWAYS);
+        GridPane content = new GridPane();
+        content.setMaxWidth(Double.MAX_VALUE);
+        content.add(label, 0, 0);
+        content.add(traceTextArea, 0, 1);
+
+        alert.getDialogPane().setExpandableContent(content);
+
+        return alert;
     }
 }

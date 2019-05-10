@@ -1,10 +1,6 @@
 package com.github.cbryant02.skribblr.util;
 
 import com.jwetherell.algorithms.datastructures.KdTree;
-import javafx.concurrent.Task;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.Image;
-
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
@@ -12,6 +8,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import javafx.concurrent.Task;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
 
 /**
  * Static utility methods for image processing and drawing
@@ -47,6 +46,7 @@ public class DrawUtils {
         try {
             bot = new SkribblRobot();
         } catch (AWTException ignore) { return null; }
+        bot.setAutoDelay(0);
 
         return new Task<Void>() {
             @Override
@@ -77,7 +77,6 @@ public class DrawUtils {
                     bot.mouseClick();
                     Thread.sleep(20L);
                     bot.mouseWheel(-1);
-                } catch (InterruptedException ex) { return null; }
 
                 /* We want to draw as large as possible, so let's "scale" the image back up to the canvas size
                  * This is achieved simply by multiplying the position of each pixel by the scaling factor that would
@@ -89,31 +88,32 @@ public class DrawUtils {
                 int progress = 0;
                 int max = image.getWidth() * image.getHeight();
 
-                for (int y = 0; y < image.getHeight(); y++) {
-                    if (y > Skribbl.CANVAS_H)
-                        break;
+                    for (int y = 0; y < image.getHeight(); y++) {
+                        if (y > Skribbl.CANVAS_H)
+                            break;
 
-                    for (int x = 0; x < image.getWidth(); x++) {
-                        try {
-                            updateProgress(++progress, max);
-                            Skribbl.Color pixel = Skribbl.Color.valueOf(new Color(image.getRGB(x, y)));
+                        for (int x = 0; x < image.getWidth(); x++) {
+                            try {
+                                updateProgress(++progress, max);
+                                Skribbl.Color pixel = Skribbl.Color.valueOf(new Color(image.getRGB(x, y)));
 
-                            // Skip background color / transparent pixels
-                            if (new Color(image.getRGB(x, y), true).getAlpha() < 255 || pixel == bgColor)
-                                continue;
+                                // Skip background color / transparent pixels
+                                if (new Color(image.getRGB(x, y), true).getAlpha() < 255 || pixel == bgColor)
+                                    continue;
 
-                            // Select color from palette
-                            bot.select(pixel);
+                                // Select color from palette
+                                bot.select(pixel);
 
-                            // Draw color on screen
-                            bot.mouseMove((int) ((x * scale) + Skribbl.CANVAS_X), (int) ((y * scale) + Skribbl.CANVAS_Y));
-                            bot.mouseClick();
-                        } catch (Exception ex) {
-                            updateProgress(1,1);
-                            return null;
+                                // Draw color on screen
+                                bot.mouseMove((int) ((x * scale) + Skribbl.CANVAS_X), (int) ((y * scale) + Skribbl.CANVAS_Y));
+                                bot.mouseClick();
+                            } catch (Exception ex) {
+                                updateProgress(1,1);
+                                return null;
+                            }
                         }
                     }
-                }
+                } catch (InterruptedException ex) { return null; }
 
                 return null;
             }
