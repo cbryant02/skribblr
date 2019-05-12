@@ -1,11 +1,5 @@
 package com.github.cbryant02.skribblr;
 
-import java.awt.AWTException;
-import java.awt.Robot;
-import java.awt.event.InputEvent;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -17,6 +11,13 @@ import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.event.InputEvent;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class Main extends Application {
     private static String apiKey;
     private static String engineId;
@@ -27,7 +28,7 @@ public class Main extends Application {
             enableSearch = false;
 
         if(enableSearch) {
-            if(args.length > 2) {
+            if(args.length < 2) {
                 System.out.println("Please provide a Google Search API key and search engine ID or pass \"nosearch\" as the first argument.");
                 System.exit(-1);
             }
@@ -88,13 +89,13 @@ public class Main extends Application {
             if(nativeKeyEvent.getKeyCode() == NativeKeyEvent.VC_F1) {
                 try {
                     GlobalScreen.unregisterNativeHook();
-                } catch (NativeHookException e) { e.printStackTrace(); }
+                } catch (NativeHookException ex) { ex.printStackTrace(); }
 
                 // If we were drawing, the mouse is probably still pressed down; release it
                 Robot r = null;
                 try {
                     r = new Robot();
-                } catch (AWTException e) { e.printStackTrace(); }
+                } catch (AWTException ex) { ex.printStackTrace(); }
                 assert r != null;
                 r.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 

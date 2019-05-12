@@ -38,7 +38,7 @@ public class ProgressPopup {
             e.printStackTrace();
         }
 
-        // Configure and show stage
+        // Configure stage
         Parent root = loader.getRoot();
         stage = new Stage();
         stage.setTitle(message);

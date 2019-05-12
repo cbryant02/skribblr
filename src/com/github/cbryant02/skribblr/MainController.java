@@ -1,18 +1,6 @@
 package com.github.cbryant02.skribblr;
 
-import com.github.cbryant02.skribblr.util.DrawUtils;
-import com.github.cbryant02.skribblr.util.ProgressPopup;
-import com.github.cbryant02.skribblr.util.Skribbl;
-import com.github.cbryant02.skribblr.util.SkribblRobot;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
+import com.github.cbryant02.skribblr.util.*;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -28,6 +16,16 @@ import javafx.stage.Stage;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 /**
  * Main layout controller. Handles most frontend application logic.
@@ -184,17 +182,19 @@ public class MainController {
         URL url;
         try {
             url = new URL(input.get());
-        } catch (MalformedURLException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Invalid URL");
-            alert.setContentText("The text you typed in was not a valid URL. Please try again.");
-            alert.showAndWait();
+        } catch (MalformedURLException ex) {
+            createExceptionAlert("The text you typed in was not a valid URL. Please try again.", ex).showAndWait();
             return;
         }
 
         // Load image
         loadImage(url.toString(), false);
+    }
+
+    @FXML
+    public void onSearchButtonPressed() {
+        GoogleSearchPopup popup = new GoogleSearchPopup();
+        popup.showAndWait();
     }
 
     @FXML
@@ -291,6 +291,42 @@ public class MainController {
     }
 
     /**
+     * Prepares an error alert with a stacktrace and message
+     * @param message Message to display
+     * @param ex Exception to source stacktrace from
+     * @return Prepared error alert
+     */
+    public static Alert createExceptionAlert(String message, Exception ex) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText("Oops!");
+        alert.setContentText(message);
+
+        StringWriter t = new StringWriter();
+        ex.printStackTrace(new PrintWriter(t));
+        String stackTrace = t.toString();
+
+        Label label = new Label("Stack trace:");
+
+        TextArea traceTextArea = new TextArea(stackTrace);
+        traceTextArea.setEditable(false);
+        traceTextArea.setWrapText(false);
+        traceTextArea.setMaxWidth(Double.MAX_VALUE);
+        traceTextArea.setMaxHeight(Double.MAX_VALUE);
+
+        GridPane.setVgrow(traceTextArea, Priority.ALWAYS);
+        GridPane.setHgrow(traceTextArea, Priority.ALWAYS);
+        GridPane content = new GridPane();
+        content.setMaxWidth(Double.MAX_VALUE);
+        content.add(label, 0, 0);
+        content.add(traceTextArea, 0, 1);
+
+        alert.getDialogPane().setExpandableContent(content);
+
+        return alert;
+    }
+
+    /**
      * Handles number formatting for imageScale
      * @param s Input string
      * @return Formatted/bound-checked number
@@ -322,35 +358,5 @@ public class MainController {
         if(r > 100) return 100L;
         if(r < 1) return 1L;
         return r;
-    }
-
-    private Alert createExceptionAlert(String message, Exception ex) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText("Oops!");
-        alert.setContentText(message);
-
-        StringWriter t = new StringWriter();
-        ex.printStackTrace(new PrintWriter(t));
-        String stackTrace = t.toString();
-
-        Label label = new Label("Stack trace:");
-
-        TextArea traceTextArea = new TextArea(stackTrace);
-        traceTextArea.setEditable(false);
-        traceTextArea.setWrapText(false);
-        traceTextArea.setMaxWidth(Double.MAX_VALUE);
-        traceTextArea.setMaxHeight(Double.MAX_VALUE);
-
-        GridPane.setVgrow(traceTextArea, Priority.ALWAYS);
-        GridPane.setHgrow(traceTextArea, Priority.ALWAYS);
-        GridPane content = new GridPane();
-        content.setMaxWidth(Double.MAX_VALUE);
-        content.add(label, 0, 0);
-        content.add(traceTextArea, 0, 1);
-
-        alert.getDialogPane().setExpandableContent(content);
-
-        return alert;
     }
 }
