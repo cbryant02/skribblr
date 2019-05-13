@@ -1,7 +1,6 @@
-package com.github.cbryant02.skribblr.util;
+package com.github.cbryant02.skribblr.util.search;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
@@ -10,13 +9,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class GoogleSearchResultDeserializer extends StdDeserializer<GoogleSearchResult[]> {
+class GoogleSearchResultDeserializer extends StdDeserializer<GoogleSearchResult[]> {
     GoogleSearchResultDeserializer() {
         super(GoogleSearchResult[].class);
     }
 
     @Override
-    public GoogleSearchResult[] deserialize(JsonParser parser, DeserializationContext dc) throws IOException, JsonProcessingException {
+    public GoogleSearchResult[] deserialize(JsonParser parser, DeserializationContext dc) throws IOException {
         ArrayList<GoogleSearchResult> results = new ArrayList<>();
 
         JsonNode root = parser.getCodec().readTree(parser);

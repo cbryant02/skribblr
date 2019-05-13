@@ -1,4 +1,4 @@
-package com.github.cbryant02.skribblr.util;
+package com.github.cbryant02.skribblr.util.search;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -6,57 +6,56 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @JsonIgnoreProperties(value = {"url", "queries", "context", "searchInformation"})
 @JsonDeserialize(using = GoogleSearchResultDeserializer.class)
-public class GoogleSearchResult {
+class GoogleSearchResult {
     @JsonProperty("title") private String title;
     @JsonProperty("link")  private String link;
     @JsonProperty("image") private ImageMeta meta;
 
-    public String getTitle() {
+    String getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
+    void setTitle(String title) {
         this.title = title;
     }
 
-    public String getLink() {
+    String getLink() {
         return link;
     }
 
-    public void setLink(String link) {
+    void setLink(String link) {
         this.link = link;
     }
 
-    public ImageMeta getImageMeta() {
+    ImageMeta getImageMeta() {
         return meta;
     }
 
-    public void setImageMeta(ImageMeta image) {
+    void setImageMeta(ImageMeta image) {
         this.meta = image;
     }
 
     static class ImageMeta {
-        private int height;
-        private int width;
-        private String thumbnail;
+        private final int height;
+        private final int width;
+        private final String thumbnail;
 
-        public ImageMeta(int height, int width, String thumbnail) {
+        ImageMeta(int height, int width, String thumbnail) {
             this.height = height;
             this.width = width;
             this.thumbnail = thumbnail;
         }
 
-        public int getHeight() {
+        int getHeight() {
             return height;
         }
 
-        public int getWidth() {
+        int getWidth() {
             return width;
         }
 
-        public String getThumbnail() {
+        String getThumbnail() {
             return thumbnail;
         }
     }
-
 }

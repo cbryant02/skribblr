@@ -1,6 +1,10 @@
 package com.github.cbryant02.skribblr;
 
-import com.github.cbryant02.skribblr.util.*;
+import com.github.cbryant02.skribblr.util.DrawUtils;
+import com.github.cbryant02.skribblr.util.ProgressPopup;
+import com.github.cbryant02.skribblr.util.Skribbl;
+import com.github.cbryant02.skribblr.util.SkribblRobot;
+import com.github.cbryant02.skribblr.util.search.GoogleSearchPopup;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -13,12 +17,16 @@ import javafx.scene.layout.Priority;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
 import java.io.*;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Optional;
@@ -39,6 +47,7 @@ public class MainController {
     @FXML private Label      originalNoImageLabel;
     @FXML private Label      skribblNoImageLabel;
     @FXML private Button     drawButton;
+    @FXML private Button     searchButton;
     @FXML private MenuButton bgColorMenu;
     @FXML private Rectangle  bgColorDisplay;
 
@@ -85,6 +94,10 @@ public class MainController {
 
             bgColorMenu.getItems().add(item);
         }
+
+        // Enable search button if search is enabled
+        if(Main.isSearchEnabled())
+            searchButton.setDisable(false);
     }
 
     /**
@@ -93,16 +106,20 @@ public class MainController {
      * @param local True if this is a file on the local disk, false if otherwise
      */
     private void loadImage(String path, boolean local) throws IOException {
-        Image image = null;
+        Image image;
 
         // Need to load images differently based on file location (web/local)
         // We also fake our user agent if loading from the web because a lot of sites are stingy about it for no reason
         if (local) {
             image = new Image(new BufferedInputStream(new FileInputStream(path)));
         } else {
-            HttpURLConnection c = (HttpURLConnection) new URL(path).openConnection();
-            c.setRequestProperty("User-Agent", String.format("Apache-HttpClient/9.9.9 (Java/9.9.9_199)"));
-            image = new Image(c.getInputStream());
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            builder.setUserAgent(String.format("Apache-HttpClient/4.5.8 (Java/%s)", System.getProperty("java.version")));
+
+            HttpClient client = builder.build();
+            HttpResponse response = client.execute(new HttpGet(path));
+
+            image = new Image(new ByteArrayInputStream(EntityUtils.toByteArray(response.getEntity())));
         }
 
         // Show an exception dialog if the image ran into an error when loading
@@ -192,9 +209,11 @@ public class MainController {
     }
 
     @FXML
-    public void onSearchButtonPressed() {
+    public void onSearchButtonPressed() throws IOException {
         GoogleSearchPopup popup = new GoogleSearchPopup();
         popup.showAndWait();
+        if(popup.getReturnUrl() != null)
+            loadImage(popup.getReturnUrl(), false);
     }
 
     @FXML

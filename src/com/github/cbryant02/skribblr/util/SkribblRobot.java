@@ -40,6 +40,7 @@ public class SkribblRobot extends Robot {
 
     /**
      * Press and release mouse with a delay.
+     * @throws InterruptedException if current thread is interrupted while asleep
      */
     void mouseClick() throws InterruptedException {
         super.mousePress(InputEvent.BUTTON1_DOWN_MASK);
@@ -50,8 +51,9 @@ public class SkribblRobot extends Robot {
     /**
      * Press and release a key with a delay.
      * @param keycode Key to press (e.g KeyEvent.VK_A)
-     * @throws InterruptedException
+     * @throws InterruptedException if current thread is interrupted while asleep
      */
+    @SuppressWarnings("SameParameterValue")
     void keyStroke(int keycode) throws InterruptedException {
         super.keyPress(keycode);
         Thread.sleep(delay);
@@ -61,6 +63,7 @@ public class SkribblRobot extends Robot {
     /**
      * Select a palette color.
      * @param color Color to select
+     * @throws InterruptedException if current thread is interrupted while asleep
      */
     void select(Skribbl.Color color) throws InterruptedException {
         super.mouseMove(color.getX(), color.getY());
@@ -72,6 +75,7 @@ public class SkribblRobot extends Robot {
     /**
      * Select a tool.
      * @param tool Tool to select
+     * @throws InterruptedException if current thread is interrupted while asleep
      */
     void select(Skribbl.Tool tool) throws InterruptedException {
         super.mouseMove(tool.getX(), tool.getY());

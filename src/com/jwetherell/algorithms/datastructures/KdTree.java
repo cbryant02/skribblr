@@ -13,6 +13,7 @@ import java.util.*;
  * <br>
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
 
     private final int k = 3;
@@ -573,6 +574,7 @@ public class KdTree<T extends KdTree.XYZPoint> implements Iterable<T> {
         }
     }
 
+    @SuppressWarnings("unused")
     public static class XYZPoint implements Comparable<XYZPoint> {
 
         final double x;

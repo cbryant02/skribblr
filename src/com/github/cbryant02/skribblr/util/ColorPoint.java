@@ -8,11 +8,9 @@ import java.awt.Color;
  * KdTree point that represents an RGB color value
  */
 class ColorPoint extends KdTree.XYZPoint {
-    private Color color;
 
     ColorPoint(Color color) {
         super(color.getRed(), color.getGreen(), color.getBlue());
-        this.color = color;
     }
 
     int getR() {

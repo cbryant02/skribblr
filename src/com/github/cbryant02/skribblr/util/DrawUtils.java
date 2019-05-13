@@ -1,6 +1,10 @@
 package com.github.cbryant02.skribblr.util;
 
 import com.jwetherell.algorithms.datastructures.KdTree;
+import javafx.concurrent.Task;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
@@ -8,9 +12,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
-import javafx.concurrent.Task;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.Image;
 
 /**
  * Static utility methods for image processing and drawing
@@ -102,6 +103,7 @@ public class DrawUtils {
                                     continue;
 
                                 // Select color from palette
+                                assert pixel != null;
                                 bot.select(pixel);
 
                                 // Draw color on screen

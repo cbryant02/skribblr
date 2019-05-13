@@ -1,9 +1,11 @@
 package com.github.cbryant02.skribblr;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.jnativehook.GlobalScreen;
@@ -20,22 +22,19 @@ import java.util.logging.Logger;
 
 public class Main extends Application {
     private static String apiKey;
-    private static String engineId;
+    private static final String engineId = "001258445199890760318:mzcgmmiwzii";
     private static boolean enableSearch = true;
 
     public static void main(String[] args) {
-        if(args.length > 0 && args[0].equals("nosearch"))
+        if(args.length < 1) {
             enableSearch = false;
-
-        if(enableSearch) {
-            if(args.length < 2) {
-                System.out.println("Please provide a Google Search API key and search engine ID or pass \"nosearch\" as the first argument.");
-                System.exit(-1);
-            }
-
-            apiKey = args[0];
-            engineId = args[1];
-        }
+            Platform.runLater(() -> {
+                Alert noSearchAlert = new Alert(Alert.AlertType.WARNING);
+                noSearchAlert.setTitle("Warning");
+                noSearchAlert.setContentText("You haven't provided a Google Custom Search API key. Web search will be disabled.");
+                noSearchAlert.showAndWait();
+            });
+        } else apiKey = args[0];
 
         launch(args);
         System.exit(0);
@@ -76,7 +75,7 @@ public class Main extends Application {
         return engineId;
     }
 
-    public static boolean isSearchEnabled() {
+    static boolean isSearchEnabled() {
         return enableSearch;
     }
 
