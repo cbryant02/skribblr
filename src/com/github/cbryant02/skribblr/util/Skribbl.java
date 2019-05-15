@@ -1,7 +1,7 @@
 package com.github.cbryant02.skribblr.util;
 
 /**
- * Defines enums for color/tool positions.
+ * Defines enums for colors/tools and provides their positions on the screen
  */
 public interface Skribbl {
     double CANVAS_X = 500.0;
@@ -9,6 +9,9 @@ public interface Skribbl {
     double CANVAS_W = 800.0;
     double CANVAS_H = 600.0;
 
+    /**
+     * Represents the palette color set
+     */
     enum Color {
         WHITE       (0xFFFFFF, 580, 770),
         GREY        (0xC1C1C1, 604, 770),
@@ -74,18 +77,32 @@ public interface Skribbl {
             return new javafx.scene.paint.Color(awtColor.getRed()/255.0, awtColor.getGreen()/255.0, awtColor.getBlue()/255.0, 1);
         }
 
+        /**
+         * @return RGB color value of this palette color
+         */
         public int getRGB() {
             return color;
         }
 
+        /**
+         * @return X position of this palette color on the screen
+         */
         public int getX() {
             return x;
         }
 
+        /**
+         * @return Y position of this palette color on the screen
+         */
         public int getY() {
             return y;
         }
 
+        /**
+         * Convert an AWT color to a directly matching palette color
+         * @param color Color to convert
+         * @return Palette color, or null if no match
+         */
         public static Color valueOf(java.awt.Color color) {
             for(Color pcolor : Color.values())
                 if(pcolor.getColor().equals(color)) return pcolor;
@@ -98,14 +115,17 @@ public interface Skribbl {
         }
     }
 
+    /**
+     * Represents the tool set
+     */
     enum Tool {
         PENCIL(870, 780),
         BUCKET(966, 780),
         BRUSH_SMALL(1034, 780);
 
         /*PENCIL(336, 69),
-        BRUSH_SMALL(-1,-1),
-        BUCKET(269, 71);*/
+        BUCKET(269, 71),
+        BRUSH_SMALL(18,160);*/
 
         private final int x;
         private final int y;
@@ -115,10 +135,16 @@ public interface Skribbl {
             this.y = y;
         }
 
+        /**
+         * @return X position of this tool on the screen
+         */
         public int getX() {
             return x;
         }
 
+        /**
+         * @return Y position of this tool on the screen
+         */
         public int getY() {
             return y;
         }

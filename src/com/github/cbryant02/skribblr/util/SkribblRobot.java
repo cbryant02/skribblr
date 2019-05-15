@@ -9,72 +9,65 @@ import java.awt.event.InputEvent;
  * Adds some convenience methods for prettier code
  */
 public class SkribblRobot extends Robot {
-    private static final long defaultBaseDelay = 10L;
+    private static final long defaultDelay = 10L;
 
-    private static long baseDelay = defaultBaseDelay;
-
-    private final int delayMul;
-
-
-    public static void setBaseDelay(long baseDelay) {
-        SkribblRobot.baseDelay = baseDelay;
-    }
+    private static long delay = defaultDelay;
 
     /**
-     * Reset the base action delay to default
-     */
-    public static long getDefaultBaseDelay() {
-        return defaultBaseDelay;
-    }
-
-    /**
-     * Construct a new SkribblRobot with the specified {@code delayMul}.
-     * @param delayMul Multiplier for automatic delay between actions. The bot uses a delay of {@value baseDelay}ms multiplied by {@code delayMul}.<br/>
-     *                 Slower computers and internet connections may necessitate a longer delayMul in order to reliably keep up with requests.
-     * @throws IllegalArgumentException if {@code delayMul} is negative or zero
-     * @throws AWTException if the platform configuration does not allow
-     * low-level input control.  This exception is always thrown when
-     * GraphicsEnvironment.isHeadless() returns true
-     */
-    private SkribblRobot(int delayMul) throws IllegalArgumentException, AWTException {
-        // Bounds check delayMul
-        if(delayMul > 0)
-            this.delayMul = delayMul;
-        else throw new IllegalArgumentException("Delay multiplier passed to SkribblRobot was negative or zero");
-    }
-
-    /**
-     * Construct a new SkribblRobot. {@code delayMul} defaults to 1.
+     * Constructs a new SkribblRobot in the coordinate system of the primary screen.
      * @throws AWTException if the platform configuration does not allow
      * low-level input control.  This exception is always thrown when
      * GraphicsEnvironment.isHeadless() returns true
      */
     SkribblRobot() throws AWTException {
-        this(1);
+        super();
+    }
+
+    /**
+     * Set base action delay
+     * @param delay New action delay
+     */
+    public static void setDelay(long delay) {
+        SkribblRobot.delay = delay;
+    }
+
+    /**
+     * Get the default base action delay
+     */
+    public static long getDefaultDelay() {
+        return defaultDelay;
     }
 
     /**
      * Press and release mouse with a delay.
+     * @throws InterruptedException if current thread is interrupted while asleep
      */
     void mouseClick() throws InterruptedException {
         super.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-        delay();
+        Thread.sleep(delay);
         super.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
+    /**
+     * Press and release a key with a delay.
+     * @param keycode Key to press (e.g KeyEvent.VK_A)
+     * @throws InterruptedException if current thread is interrupted while asleep
+     */
+    @SuppressWarnings("SameParameterValue")
     void keyStroke(int keycode) throws InterruptedException {
         super.keyPress(keycode);
-        delay();
+        Thread.sleep(delay);
         super.keyRelease(keycode);
     }
 
     /**
      * Select a palette color.
      * @param color Color to select
+     * @throws InterruptedException if current thread is interrupted while asleep
      */
     void select(Skribbl.Color color) throws InterruptedException {
         super.mouseMove(color.getX(), color.getY());
-        delay();
+        Thread.sleep(delay);
         mouseClick();
         mouseClick();
     }
@@ -82,15 +75,12 @@ public class SkribblRobot extends Robot {
     /**
      * Select a tool.
      * @param tool Tool to select
+     * @throws InterruptedException if current thread is interrupted while asleep
      */
     void select(Skribbl.Tool tool) throws InterruptedException {
         super.mouseMove(tool.getX(), tool.getY());
-        delay();
+        Thread.sleep(delay);
         mouseClick();
         mouseClick();
-    }
-
-    private void delay() throws InterruptedException {
-        Thread.sleep(baseDelay * delayMul);
     }
 }

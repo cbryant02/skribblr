@@ -6,3 +6,5 @@
 *.jpg
 *.gif
 out/**
+.search_cache/**
+**/api_key
