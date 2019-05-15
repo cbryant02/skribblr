@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--suppress XmlHighlighting -->
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<AnchorPane prefHeight="200.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.172-ea"
+            xmlns:fx="http://javafx.com/fxml/1">
+   <padding>
+      <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
+   </padding>
+   <Label alignment="CENTER" layoutX="236.0" layoutY="117.0" text="Enter API Key" AnchorPane.leftAnchor="0.0"
+          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <font>
+         <Font name="System Bold" size="24.0"/>
+      </font>
+   </Label>
+   <Hyperlink fx:id="apiKeyLink" alignment="CENTER" layoutX="20.0" layoutY="55.0" text="Get one here!" underline="true"
+              AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="35.0">
+      <font>
+         <Font size="14.0"/>
+      </font>
+   </Hyperlink>
+   <PasswordField fx:id="keyField" layoutX="80.0" layoutY="85.0" onAction="#onKeyFieldUpdate" prefHeight="30.0"
+                  promptText="Enter key here..." AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="30.0"
+                  AnchorPane.topAnchor="70.0"/>
+   <Label alignment="CENTER" layoutX="236.0" layoutY="130.0"
+          text="Your data will NOT be shared.&#10;It is saved locally and you may delete it any time.&#10;***Don't send this key to anybody.***"
+          textAlignment="CENTER" textFill="RED" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+          AnchorPane.topAnchor="110.0"/>
+</AnchorPane>

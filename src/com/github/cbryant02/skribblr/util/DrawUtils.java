@@ -16,9 +16,11 @@ import java.awt.image.WritableRaster;
 /**
  * Static utility methods for image processing and drawing
  */
-public class DrawUtils {
+public final class DrawUtils {
     private static final KdTree<ColorPoint> tree;
     private static Skribbl.Color bgColor = Skribbl.Color.WHITE;
+
+    private DrawUtils() {}
 
     static {
         tree = new KdTree<>();
@@ -103,7 +105,7 @@ public class DrawUtils {
                                     continue;
 
                                 // Select color from palette
-                                assert pixel != null;
+                                assert (pixel != null);
                                 bot.select(pixel);
 
                                 // Draw color on screen

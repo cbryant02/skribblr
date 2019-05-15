@@ -7,6 +7,7 @@ import com.github.cbryant02.skribblr.MainController;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Cursor;
@@ -23,34 +24,41 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ResourceBundle;
 
-public class GoogleSearchPopup {
-    private static final String API_KEY = Main.getApiKey();
-    private static final String ENGINE_ID = Main.getEngineId();
-    private static final String REST_FORMAT = "https://www.googleapis.com/customsearch/v1?key=%s&cx=%s&q=%s&searchType=image&start=%d";
-    private static final Map<String,GoogleSearchResult[]> resultsCache = new HashMap<>();
-    private static ObjectMapper mapper;
-    private String returnUrl;
-    private int start = 1;
-    private String currentSearch;
-    private Stage stage;
-    @FXML private Parent root;
+/**
+ * A search popup.
+ * "Returns" a URL upon selection
+ */
+public final class GoogleSearchPopup implements Initializable {
     @FXML private GridPane grid;
     @FXML private TextField searchField;
     @FXML private Button prevButton;
     @FXML private Button nextButton;
 
+    private static final String API_KEY = Main.getApiKey();
+    private static final String ENGINE_ID = Main.ENGINE_ID;
+    private static final String REST_FORMAT = "https://www.googleapis.com/customsearch/v1?key=%s&cx=%s&q=%s&searchType=image&start=%d";
+    private static ObjectMapper mapper;
+    private final FXMLLoader loader;
+    private String returnUrl;
+    private String currentSearch;
+    private Stage stage;
+    private int start = 1;
+
+    /**
+     * Construct a new {@code GoogleSearchPopup}.
+     */
     public GoogleSearchPopup() {
         // Set up the JSON object mapper and register our custom deserializer
         mapper = new ObjectMapper();
@@ -59,33 +67,44 @@ public class GoogleSearchPopup {
         mapper.registerModule(dsModule);
 
         // Load layout
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("../../fxml/google.fxml"));
+        loader = new FXMLLoader(getClass().getClassLoader().getResource("com/github/cbryant02/skribblr/fxml/google.fxml"));
         loader.setController(this);
         try {
             loader.load();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            MainController.createExceptionAlert("Failed to load layout for search popup", ex);
+            System.exit(-1);
         }
     }
 
     @FXML
-    public void initialize() {
+    public void initialize(URL location, ResourceBundle resources) {
         // Configure stage
+        Parent root = loader.getRoot();
         stage = new Stage();
         stage.setTitle("Search");
         stage.setScene(new Scene(root, root.prefWidth(-1), root.prefHeight(-1)));
         stage.setResizable(false);
     }
 
+    /**
+     * Show the popup and return the result.
+     * @return URL for selected image, or null if none selected
+     */
+    public String show() {
+        stage.showAndWait();
+        return returnUrl;
+    }
+
     @FXML
-    public void onNextButtonPressed() {
+    private void onNextButtonPressed() {
         start += 10;
         prevButton.setDisable(false);
         Platform.runLater(this::search);
     }
 
     @FXML
-    public void onPrevButtonPressed() {
+    private void onPrevButtonPressed() {
         start -= 10;
         if(start == 1)
             prevButton.setDisable(true);
@@ -93,11 +112,11 @@ public class GoogleSearchPopup {
     }
 
     @FXML
-    public void onSearchFieldUpdate() {
+    private void onSearchFieldUpdate() {
         String term;
         try {
             term = URLEncoder.encode(searchField.getText(), StandardCharsets.UTF_8.toString());
-        } catch (UnsupportedEncodingException e) { return; }
+        } catch (UnsupportedEncodingException ex) { return; }
 
         if(term == null || term.isEmpty())
             return;
@@ -112,26 +131,24 @@ public class GoogleSearchPopup {
         nextButton.setDisable(false);
     }
 
-    public void showAndWait() {
-        stage.showAndWait();
-    }
-
-    public String getReturnUrl() {
-        return returnUrl;
-    }
-
+    /**
+     * Performs a search using the current search term and start value, then shows the results
+     */
     private void search() {
         // Build query url
         String request = String.format(REST_FORMAT, API_KEY, ENGINE_ID, currentSearch, start);
         GoogleSearchResult[] results;
 
-        // Skip API call if we've already fetched the results for this request
-        // Saves both time and requests
-        if(!resultsCache.containsKey(request)) {
+        // Skip API call if the cache has results for this request
+        // Saves both time and API calls
+        if(CacheManager.has(request)) {
+            results = CacheManager.get(request);
+            System.out.printf("Using cached data for %s\n", request);
+        } else {
             // Query results
             String json;
             try {
-                json = query(request);
+                json = get(request);
             } catch (IOException ex) {
                 MainController.createExceptionAlert("An unexpected I/O error occurred while processing the search results. Please try again.", ex).showAndWait();
                 return;
@@ -144,10 +161,11 @@ public class GoogleSearchPopup {
                 MainController.createExceptionAlert("An unexpected I/O error occurred while processing the search results. Please try again.", ex).showAndWait();
                 return;
             }
-        } else {
-            results = resultsCache.get(request);
-            System.out.println("Cache already had results for \"" + request.substring(0,40) + "...\", using cached data");
+
+            // Cache results
+            CacheManager.save(request, results);
         }
+        assert (results != null);
 
         // Clear GridPane
         if (grid.getChildren().size() > 0)
@@ -162,7 +180,7 @@ public class GoogleSearchPopup {
 
                 GoogleSearchResult result = results[resultIdx];
 
-                ImageView view = new ImageView(result.getImageMeta().getThumbnail());
+                ImageView view = new ImageView(result.getMeta().getThumbnail());
                 view.setCursor(Cursor.HAND);
                 view.setOnMouseClicked(ignore -> {
                     returnUrl = result.getLink();
@@ -170,7 +188,7 @@ public class GoogleSearchPopup {
                 });
 
                 Label label = new Label();
-                label.setText(String.format("%s\n(%dx%d)", result.getTitle(), result.getImageMeta().getWidth(), result.getImageMeta().getHeight()));
+                label.setText(String.format("%s\n(%dx%d)", result.getTitle(), result.getMeta().getWidth(), result.getMeta().getHeight()));
                 label.setTextOverrun(OverrunStyle.ELLIPSIS);
                 label.setTextAlignment(TextAlignment.CENTER);
                 label.setAlignment(Pos.CENTER);
@@ -182,22 +200,27 @@ public class GoogleSearchPopup {
                 resultIdx++;
             }
         }
-
-        resultsCache.put(request, results);
     }
 
-    private String query(String request) throws IOException {
+    /**
+     * Perform a GET request and return the result.
+     * @param request Request URL
+     * @return JSON result
+     * @throws IOException If a general connection problem or I/O error occurs
+     */
+    private String get(String request) throws IOException {
         HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setUserAgent(String.format("Apache-HttpClient/4.5.8 (Java/%s)", System.getProperty("java.version")));
+        builder.setUserAgent(Main.USER_AGENT);
 
-        HttpClient client = builder.build();
-        HttpResponse response = client.execute(new HttpGet(request));
+        try(CloseableHttpClient client = builder.build()) {
+            HttpResponse response = client.execute(new HttpGet(request));
 
-        int responseCode = response.getStatusLine().getStatusCode();
-        System.out.println("Got response " + responseCode + " for " + request.substring(0,40) + "...");
-        if(responseCode != HttpStatus.SC_OK)
-            return "";
+            int responseCode = response.getStatusLine().getStatusCode();
+            System.out.printf("Got response %d for %s\n", responseCode, request);
+            if (responseCode != HttpStatus.SC_OK)
+                return "";
 
-        return EntityUtils.toString(response.getEntity());
+            return EntityUtils.toString(response.getEntity());
+        }
     }
 }

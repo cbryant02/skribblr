@@ -9,8 +9,11 @@ public interface Skribbl {
     double CANVAS_W = 800.0;
     double CANVAS_H = 600.0;
 
+    /**
+     * Represents the palette color set
+     */
     enum Color {
-        /*WHITE       (0xFFFFFF, 580, 770),
+        WHITE       (0xFFFFFF, 580, 770),
         GREY        (0xC1C1C1, 604, 770),
         RED         (0xEF130B, 628, 770),
         ORANGE      (0xFF7100, 652, 770),
@@ -31,10 +34,10 @@ public interface Skribbl {
         DARK_BLUE   (0x0E0865, 748, 794),
         DARK_PURPLE (0x550069, 772, 794),
         DARK_PINK   (0xA75574, 796, 794),
-        DARK_BROWN  (0x63300D, 820, 794);*/
+        DARK_BROWN  (0x63300D, 820, 794);
 
         // Alternative Paint palette
-        BLACK       (0x000000, 760, 58),
+        /*BLACK       (0x000000, 760, 58),
         GRAY        (0x7F7F7F, 782, 58),
         DARK_RED    (0x880015, 804, 58),
         RED         (0xED1C24, 826, 58),
@@ -53,7 +56,7 @@ public interface Skribbl {
         LIME_GREEN  (0xB5E61D, 892, 80),
         BABY_BLUE   (0x99D9EA, 914, 80),
         LIGHT_BLUE  (0x7092BE, 936, 80),
-        PURPLE_PINK (0xC8BFE7, 958, 80);
+        PURPLE_PINK (0xC8BFE7, 958, 80);*/
 
         private final int color;
         private final int x;
@@ -74,18 +77,32 @@ public interface Skribbl {
             return new javafx.scene.paint.Color(awtColor.getRed()/255.0, awtColor.getGreen()/255.0, awtColor.getBlue()/255.0, 1);
         }
 
+        /**
+         * @return RGB color value of this palette color
+         */
         public int getRGB() {
             return color;
         }
 
+        /**
+         * @return X position of this palette color on the screen
+         */
         public int getX() {
             return x;
         }
 
+        /**
+         * @return Y position of this palette color on the screen
+         */
         public int getY() {
             return y;
         }
 
+        /**
+         * Convert an AWT color to a directly matching palette color
+         * @param color Color to convert
+         * @return Palette color, or null if no match
+         */
         public static Color valueOf(java.awt.Color color) {
             for(Color pcolor : Color.values())
                 if(pcolor.getColor().equals(color)) return pcolor;
@@ -98,14 +115,17 @@ public interface Skribbl {
         }
     }
 
+    /**
+     * Represents the tool set
+     */
     enum Tool {
-        /*PENCIL(870, 780),
+        PENCIL(870, 780),
         BUCKET(966, 780),
-        BRUSH_SMALL(1034, 780);*/
+        BRUSH_SMALL(1034, 780);
 
-        PENCIL(336, 69),
+        /*PENCIL(336, 69),
         BUCKET(269, 71),
-        BRUSH_SMALL(18,160);
+        BRUSH_SMALL(18,160);*/
 
         private final int x;
         private final int y;
@@ -115,10 +135,16 @@ public interface Skribbl {
             this.y = y;
         }
 
+        /**
+         * @return X position of this tool on the screen
+         */
         public int getX() {
             return x;
         }
 
+        /**
+         * @return Y position of this tool on the screen
+         */
         public int getY() {
             return y;
         }

@@ -4,43 +4,69 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import java.io.Serializable;
+
+/**
+ * Represents a single image search result.
+ */
 @JsonIgnoreProperties(value = {"url", "queries", "context", "searchInformation"})
 @JsonDeserialize(using = GoogleSearchResultDeserializer.class)
-class GoogleSearchResult {
+final class GoogleSearchResult implements Serializable {
     @JsonProperty("title") private String title;
     @JsonProperty("link")  private String link;
-    @JsonProperty("image") private ImageMeta meta;
+    @JsonProperty("image") private ResultMeta meta;
 
+    /**
+     * @return Result title
+     */
     String getTitle() {
         return title;
     }
 
+    /**
+     * @param title New result title
+     */
     void setTitle(String title) {
         this.title = title;
     }
 
+    /**
+     * @return Link to image
+     */
     String getLink() {
         return link;
     }
 
+    /**
+     * @param link New image link
+     */
     void setLink(String link) {
         this.link = link;
     }
 
-    ImageMeta getImageMeta() {
+    /**
+     * @return Additional result metadata
+     */
+    ResultMeta getMeta() {
         return meta;
     }
 
-    void setImageMeta(ImageMeta image) {
-        this.meta = image;
+    /**
+     * @param meta New result metadata
+     */
+    void setMeta(ResultMeta meta) {
+        this.meta = meta;
     }
 
-    static class ImageMeta {
+    /**
+     * Simple container class for extra image result metadata
+     */
+    static class ResultMeta implements Serializable {
         private final int height;
         private final int width;
         private final String thumbnail;
 
-        ImageMeta(int height, int width, String thumbnail) {
+        ResultMeta(int height, int width, String thumbnail) {
             this.height = height;
             this.width = width;
             this.thumbnail = thumbnail;

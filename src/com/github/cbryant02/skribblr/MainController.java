@@ -1,9 +1,6 @@
 package com.github.cbryant02.skribblr;
 
-import com.github.cbryant02.skribblr.util.DrawUtils;
-import com.github.cbryant02.skribblr.util.ProgressPopup;
-import com.github.cbryant02.skribblr.util.Skribbl;
-import com.github.cbryant02.skribblr.util.SkribblRobot;
+import com.github.cbryant02.skribblr.util.*;
 import com.github.cbryant02.skribblr.util.search.GoogleSearchPopup;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -14,12 +11,15 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jnativehook.GlobalScreen;
@@ -38,7 +38,7 @@ import java.util.concurrent.FutureTask;
 /**
  * Main layout controller. Handles most frontend application logic.
  */
-public class MainController {
+public final class MainController {
     @FXML private ImageView  originalImageView;
     @FXML private ImageView  skribblImageView;
     @FXML private TextField  imageScaleInput;
@@ -46,19 +46,19 @@ public class MainController {
     @FXML private Label      imagePathLabel;
     @FXML private Label      originalNoImageLabel;
     @FXML private Label      skribblNoImageLabel;
+    @FXML private Label apiKeyLabel;
     @FXML private Button     drawButton;
     @FXML private Button     searchButton;
     @FXML private MenuButton bgColorMenu;
     @FXML private Rectangle  bgColorDisplay;
 
+    private static final int IMAGE_SCALE_DEFAULT = 100;
     private final Stage stage;
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private Image currentImage;
     private Image currentImageConverted;
     private FutureTask<FileChooser> preloadFileChooserFuture;
     private int imageScale;
-
-    private static final int IMAGE_SCALE_DEFAULT = 100;
 
     MainController(Stage stage) {
         this.stage = stage;
@@ -90,6 +90,7 @@ public class MainController {
                 bgColorMenu.setText(color.toString());
                 bgColorDisplay.setFill(color.getFxColor());
                 DrawUtils.setBgColor(color);
+                event.consume();
             });
 
             bgColorMenu.getItems().add(item);
@@ -101,62 +102,39 @@ public class MainController {
     }
 
     /**
-     * Load, display, and process an image.
-     * @param path Path to image
-     * @param local True if this is a file on the local disk, false if otherwise
+     * Prepares an error alert with a stacktrace and message
+     * @param message Message to display
+     * @param ex Exception to source stacktrace from
+     * @return Prepared error alert
      */
-    private void loadImage(String path, boolean local) throws IOException {
-        Image image;
+    public static Alert createExceptionAlert(String message, Exception ex) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText("Oops!");
+        alert.setContentText(message);
 
-        // Need to load images differently based on file location (web/local)
-        // We also fake our user agent if loading from the web because a lot of sites are stingy about it for no reason
-        if (local) {
-            image = new Image(new BufferedInputStream(new FileInputStream(path)));
-        } else {
-            HttpClientBuilder builder = HttpClientBuilder.create();
-            builder.setUserAgent(String.format("Apache-HttpClient/4.5.8 (Java/%s)", System.getProperty("java.version")));
+        StringWriter t = new StringWriter();
+        ex.printStackTrace(new PrintWriter(t));
+        String stackTrace = t.toString();
 
-            HttpClient client = builder.build();
-            HttpResponse response = client.execute(new HttpGet(path));
+        Label label = new Label("Stack trace:");
 
-            image = new Image(new ByteArrayInputStream(EntityUtils.toByteArray(response.getEntity())));
-        }
+        TextArea traceTextArea = new TextArea(stackTrace);
+        traceTextArea.setEditable(false);
+        traceTextArea.setWrapText(false);
+        traceTextArea.setMaxWidth(Double.MAX_VALUE);
+        traceTextArea.setMaxHeight(Double.MAX_VALUE);
 
-        // Show an exception dialog if the image ran into an error when loading
-        // Usually this is just a 403
-        Exception ex = image.getException();
-        if(ex != null) {
-            String message = "We ran into an error when getting that image from the server.\n" +
-                             "Try again or try another image.";
-            createExceptionAlert(message, ex).showAndWait();
-            return;
-        }
+        GridPane.setVgrow(traceTextArea, Priority.ALWAYS);
+        GridPane.setHgrow(traceTextArea, Priority.ALWAYS);
+        GridPane content = new GridPane();
+        content.setMaxWidth(Double.MAX_VALUE);
+        content.add(label, 0, 0);
+        content.add(traceTextArea, 0, 1);
 
-        // Update original view and process image for converted view
-        originalImageView.setImage(image);
-        currentImage = image;
-        process(image);
+        alert.getDialogPane().setExpandableContent(content);
 
-        // Update image path
-        imagePathLabel.setText(path);
-
-        // Hide "no image" labels
-        originalNoImageLabel.setVisible(false);
-        skribblNoImageLabel.setVisible(false);
-
-        // Enable draw button
-        drawButton.setDisable(false);
-    }
-
-    /**
-     * Process and display an image.
-     * @param image Image to process
-     */
-    private void process(Image image) {
-        Image converted = DrawUtils.skribblify(image);
-        converted = DrawUtils.scaleImage(converted, imageScale/100.0);
-        skribblImageView.setImage(DrawUtils.scaleImage(converted, 100.0/imageScale));
-        currentImageConverted = converted;
+        return alert;
     }
 
     @FXML
@@ -195,7 +173,7 @@ public class MainController {
         if(!input.isPresent())
             return;
 
-        //
+        // Convert to URL object
         URL url;
         try {
             url = new URL(input.get());
@@ -211,9 +189,9 @@ public class MainController {
     @FXML
     public void onSearchButtonPressed() throws IOException {
         GoogleSearchPopup popup = new GoogleSearchPopup();
-        popup.showAndWait();
-        if(popup.getReturnUrl() != null)
-            loadImage(popup.getReturnUrl(), false);
+        String url = popup.show();
+        if(url != null)
+            loadImage(url, false);
     }
 
     @FXML
@@ -310,39 +288,85 @@ public class MainController {
     }
 
     /**
-     * Prepares an error alert with a stacktrace and message
-     * @param message Message to display
-     * @param ex Exception to source stacktrace from
-     * @return Prepared error alert
+     * Check presence of API key and update text field as needed
      */
-    public static Alert createExceptionAlert(String message, Exception ex) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText("Oops!");
-        alert.setContentText(message);
+    void checkApiKey() {
+        if(Main.getApiKey() == null) {
+            apiKeyLabel.setText("Enter API key!");
+            apiKeyLabel.setFont(Font.font("System", FontWeight.BOLD, 18.0));
+            apiKeyLabel.setTextFill(Color.RED);
+            apiKeyLabel.setUnderline(true);
+            apiKeyLabel.setOnMouseClicked(event -> new ApiKeyPopup().showAndWait());
+            return;
+        }
+        apiKeyLabel.setText("API key valid");
+        apiKeyLabel.setFont(Font.font("System", FontWeight.NORMAL, 12.0));
+        apiKeyLabel.setTextFill(Color.GRAY);
+        apiKeyLabel.setUnderline(false);
+        apiKeyLabel.setOnMouseClicked(event -> {});
+    }
 
-        StringWriter t = new StringWriter();
-        ex.printStackTrace(new PrintWriter(t));
-        String stackTrace = t.toString();
+    /**
+     * Load, display, and process an image.
+     * @param path Path to image
+     * @param local True if this is a file on the local disk, false if otherwise
+     */
+    private void loadImage(String path, boolean local) throws IOException {
+        Image image;
 
-        Label label = new Label("Stack trace:");
+        // Need to load images differently based on file location (web/local)
+        if (local) {
+            try(BufferedInputStream s = new BufferedInputStream(new FileInputStream(path))) {
+                image = new Image(s);
+            }
+        } else {
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            builder.setUserAgent(Main.USER_AGENT);
 
-        TextArea traceTextArea = new TextArea(stackTrace);
-        traceTextArea.setEditable(false);
-        traceTextArea.setWrapText(false);
-        traceTextArea.setMaxWidth(Double.MAX_VALUE);
-        traceTextArea.setMaxHeight(Double.MAX_VALUE);
+            try (CloseableHttpClient client = builder.build()) {
+                HttpResponse response = client.execute(new HttpGet(path));
 
-        GridPane.setVgrow(traceTextArea, Priority.ALWAYS);
-        GridPane.setHgrow(traceTextArea, Priority.ALWAYS);
-        GridPane content = new GridPane();
-        content.setMaxWidth(Double.MAX_VALUE);
-        content.add(label, 0, 0);
-        content.add(traceTextArea, 0, 1);
+                try (ByteArrayInputStream s = new ByteArrayInputStream(EntityUtils.toByteArray(response.getEntity()))) {
+                    image = new Image(s);
+                }
+            }
+        }
 
-        alert.getDialogPane().setExpandableContent(content);
+        // Show an exception dialog if the image ran into an error when loading
+        // Usually this is just a 403
+        Exception ex = image.getException();
+        if(ex != null) {
+            String message = "We ran into an error when getting that image from the server.\n" +
+                    "Try again or try another image.";
+            createExceptionAlert(message, ex).showAndWait();
+            return;
+        }
 
-        return alert;
+        // Update original view and process image for converted view
+        originalImageView.setImage(image);
+        currentImage = image;
+        process(image);
+
+        // Update image path
+        imagePathLabel.setText(path);
+
+        // Hide "no image" labels
+        originalNoImageLabel.setVisible(false);
+        skribblNoImageLabel.setVisible(false);
+
+        // Enable draw button
+        drawButton.setDisable(false);
+    }
+
+    /**
+     * Process and display an image.
+     * @param image Image to process
+     */
+    private void process(Image image) {
+        Image converted = DrawUtils.skribblify(image);
+        converted = DrawUtils.scaleImage(converted, imageScale/100.0);
+        skribblImageView.setImage(DrawUtils.scaleImage(converted, 100.0/imageScale));
+        currentImageConverted = converted;
     }
 
     /**

@@ -1,8 +1,10 @@
 package com.github.cbryant02.skribblr.util;
 
+import com.github.cbryant02.skribblr.MainController;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -12,14 +14,20 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 
 /**
  * A simple popup with a Task-tracking progress bar.
  */
-public class ProgressPopup {
+public class ProgressPopup implements Initializable {
     @FXML private Label titleLabel;
     @FXML private ProgressBar progressBar;
-    private final Stage stage;
+
+    private final FXMLLoader loader;
+    private Stage stage;
+    private final String message;
+    private final Task task;
 
     /**
      * Construct a new ProgressPopup.
@@ -27,17 +35,22 @@ public class ProgressPopup {
      * @param task Task to track
      */
     public ProgressPopup(String message, Task task) {
-        Rectangle2D screenBounds = Screen.getPrimary().getBounds();
+        this.message = message;
+        this.task = task;
 
         // Load layout
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("../fxml/progress.fxml"));
+        loader = new FXMLLoader(getClass().getClassLoader().getResource("com/github/cbryant02/skribblr/fxml/progress.fxml"));
         loader.setController(this);
         try {
             loader.load();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            MainController.createExceptionAlert("Failed to load layout for progress popup", ex);
+            System.exit(-1);
         }
+    }
 
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
         // Configure stage
         Parent root = loader.getRoot();
         stage = new Stage();
@@ -47,6 +60,7 @@ public class ProgressPopup {
         stage.setAlwaysOnTop(true);
 
         // Position stage in top right corner
+        Rectangle2D screenBounds = Screen.getPrimary().getBounds();
         stage.setX(screenBounds.getWidth() - root.prefWidth(-1) - 20);
         stage.setY(10);
 

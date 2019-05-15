@@ -9,7 +9,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.IOException;
 import java.util.ArrayList;
 
-class GoogleSearchResultDeserializer extends StdDeserializer<GoogleSearchResult[]> {
+/**
+ * Array deserializer for {@link GoogleSearchResult}.
+ */
+final class GoogleSearchResultDeserializer extends StdDeserializer<GoogleSearchResult[]> {
+    /**
+     * Construct a new {@code GoogleSearchResultDeserializer}.
+     */
     GoogleSearchResultDeserializer() {
         super(GoogleSearchResult[].class);
     }
@@ -24,7 +30,7 @@ class GoogleSearchResultDeserializer extends StdDeserializer<GoogleSearchResult[
             JsonNode imageNode = resultNode.get("image");
 
             GoogleSearchResult result = new GoogleSearchResult();
-            result.setImageMeta(new GoogleSearchResult.ImageMeta(imageNode.get("height").intValue(), imageNode.get("width").intValue(), imageNode.get("thumbnailLink").asText()));
+            result.setMeta(new GoogleSearchResult.ResultMeta(imageNode.get("height").intValue(), imageNode.get("width").intValue(), imageNode.get("thumbnailLink").asText()));
             result.setTitle(resultNode.get("title").asText());
             result.setLink((resultNode.get("link").asText()).split("\\?")[0]);  // The link is split on '?' to remove extra parameters
 
