@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-Class-Path: lib/
-Main-Class: com.github.cbryant02.skribblr.Main
-

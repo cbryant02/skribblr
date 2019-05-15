@@ -37,8 +37,6 @@ public final class Main extends Application {
     private static Main instance;
     private static MainController controller;
 
-    private Main() {}
-
     public static void main(String[] args) {
         instance = new Main();
 
