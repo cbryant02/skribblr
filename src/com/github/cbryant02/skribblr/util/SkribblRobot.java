@@ -2,7 +2,6 @@ package com.github.cbryant02.skribblr.util;
 
 
 import java.awt.AWTException;
-import java.awt.Robot;
 import java.awt.event.InputEvent;
 
 /**
